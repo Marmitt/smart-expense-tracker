@@ -11,7 +11,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 @app.before_request
 def make_session_available():
-    pass  # App is now public; session info is used in templates
+    pass
 
 @app.route("/")
 def index():
@@ -44,7 +44,34 @@ def index():
     chart_labels = grouped.index.tolist()
     chart_data = grouped.values.tolist()
 
-    return render_template("index.html", expenses=df.to_dict(orient="records"), total=total, grouped=grouped, chart_labels=chart_labels, chart_data=chart_data, selected_filter=filter_type)
+    budget = database.get_user_budget(user_id) if user_id else None
+    remaining = round(budget - total, 2) if budget is not None else None
+
+    return render_template(
+        "index.html",
+        expenses=df.to_dict(orient="records"),
+        total=total,
+        grouped=grouped,
+        chart_labels=chart_labels,
+        chart_data=chart_data,
+        selected_filter=filter_type,
+        budget=budget,
+        remaining=remaining
+    )
+
+@app.route("/set_budget", methods=["POST"])
+def set_budget():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login")
+
+    try:
+        new_budget = float(request.form["budget"])
+        database.update_user_budget(user_id, new_budget)
+    except ValueError:
+        pass
+
+    return redirect("/")
 
 @app.route("/add", methods=["POST"])
 def add():
@@ -105,6 +132,6 @@ def login():
 def logout():
     session.clear()
     return redirect("/")
-    
+
 if __name__ == "__main__":
     app.run(debug=True)

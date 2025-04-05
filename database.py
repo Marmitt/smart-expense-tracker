@@ -25,3 +25,16 @@ def validate_user(username, password):
     if row and check_password_hash(row[1], password):
         return row[0]
     return None
+
+def get_user_budget(user_id):
+    db = connect()
+    row = db.execute("SELECT budget FROM users WHERE id = ?", (user_id,)).fetchone()
+    db.close()
+    return row[0] if row else 0
+
+def update_user_budget(user_id, budget):
+    db = connect()
+    db.execute("UPDATE users SET budget = ? WHERE id = ?", (budget, user_id))
+    db.commit()
+    db.close()
+
