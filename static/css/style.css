@@ -1,9 +1,34 @@
 body {
-    background: #f8f9fa;
+    background-color: #f5f7fa;
     font-family: 'Segoe UI', sans-serif;
   }
   
-  h1, h4 {
+  .card {
+    background-color: white;
+    border: none;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .form-select,
+  .form-control {
+    border-radius: 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
     font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chart-container {
+    max-width: 400px;
+    margin: auto;
+  }
+  
+  .badge {
+    font-size: 0.9rem;
   }
   
