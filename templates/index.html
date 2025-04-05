@@ -6,26 +6,24 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand text-success fw-bold" href="/">Smart Expense Tracker</a>
-    <div class="d-flex ms-auto">
-      {% if session.get("user_id") %}
-        <a href="/logout" class="btn btn-outline-danger me-2">Logout</a>
-      {% else %}
-        <a href="/login" class="btn btn-outline-success me-2">Login</a>
-        <a href="/register" class="btn btn-success">Register</a>
-      {% endif %}
-    </div>
-  </div>
-</nav>
-
 <body>
-  <div class="container py-4">
-    <h1 class="mb-4 text-success">💸 Smart Expense Tracker</h1>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand text-success fw-bold" href="/">Smart Expense Tracker</a>
+      <div class="d-flex ms-auto">
+        {% if session.get("user_id") %}
+          <a href="/logout" class="btn btn-outline-danger me-2">Logout</a>
+        {% else %}
+          <a href="/login" class="btn btn-outline-success me-2">Login</a>
+          <a href="/register" class="btn btn-success">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
 
-    <!-- FILTER BAR -->
+  <div class="container py-4">
+    <!-- Filter Dropdown -->
     <form method="get" class="mb-4">
       <label class="form-label me-2">Filter:</label>
       <select name="filter" onchange="this.form.submit()" class="form-select d-inline-block w-auto">
@@ -36,7 +34,28 @@
       </select>
     </form>
 
-    <!-- ADD FORM -->
+    <!-- Budget Tracker -->
+    {% if session.get('user_id') %}
+    <div class="mb-4">
+      <h5 class="text-primary mb-2">💰 Budget Tracker</h5>
+      <form action="/set_budget" method="POST" class="row g-2 align-items-center">
+        <div class="col-auto">
+          <input type="number" step="0.01" name="budget" class="form-control" value="{{ budget or '' }}" placeholder="Set Monthly Budget" required>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-outline-success" type="submit">Update Budget</button>
+        </div>
+        {% if budget is not none %}
+        <div class="col-auto">
+          <span class="badge bg-info text-dark">Remaining: ${{ "%.2f"|format(remaining) }}</span>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Add Expense -->
+    {% if session.get("user_id") %}
     <div class="mb-5">
       <h4 class="mb-3 text-primary">➕ Add New Expense</h4>
       <form action="/add" method="POST">
@@ -52,7 +71,7 @@
       </form>
     </div>
 
-    <!-- UPLOAD -->
+    <!-- Upload CSV -->
     <div class="mb-5">
       <h4 class="mb-3 text-primary">📁 Upload CSV</h4>
       <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -62,8 +81,9 @@
         </div>
       </form>
     </div>
+    {% endif %}
 
-    <!-- SUMMARY -->
+    <!-- Summary -->
     <div class="mb-4">
       <h4>Total Spent: ${{ total }}</h4>
       <ul>
@@ -73,13 +93,13 @@
       </ul>
     </div>
 
-    <!-- CHART -->
+    <!-- Chart -->
     <div class="mb-5">
       <h4 class="mb-3">📊 Expenses by Category</h4>
       <canvas id="expenseChart" height="100"></canvas>
     </div>
 
-    <!-- TABLE -->
+    <!-- Expense Table -->
     <table class="table table-striped">
       <thead>
         <tr>
@@ -106,24 +126,28 @@
   <script>
     const ctx = document.getElementById('expenseChart');
     new Chart(ctx, {
-      type: 'bar',
+      type: 'pie',
       data: {
         labels: {{ chart_labels | tojson }},
         datasets: [{
-          label: 'Total ($)',
+          label: 'Spending ($)',
           data: {{ chart_data | tojson }},
-          backgroundColor: 'rgba(40, 167, 69, 0.6)',
-          borderRadius: 5
+          backgroundColor: [
+            '#4caf50',
+            '#81c784',
+            '#a5d6a7',
+            '#c8e6c9',
+            '#e8f5e9',
+            '#388e3c',
+            '#2e7d32'
+          ]
         }]
       },
       options: {
-        plugins: { legend: { display: false }},
         responsive: true,
-        scales: {
-          y: {
-            ticks: {
-              callback: value => '$' + value
-            }
+        plugins: {
+          legend: {
+            position: 'right'
           }
         }
       }
