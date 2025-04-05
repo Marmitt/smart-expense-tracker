@@ -32,3 +32,13 @@ body {
     font-size: 0.9rem;
   }
   
+  .auth-card {
+    max-width: 420px;
+    margin: auto;
+    margin-top: 8vh;
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: white;
+    box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.05);
+  }
+  
