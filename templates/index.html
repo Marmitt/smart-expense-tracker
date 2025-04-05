@@ -10,23 +10,26 @@
   <div class="container py-4">
     <h1 class="mb-4 text-success">💸 Smart Expense Tracker</h1>
 
-    <!-- Add New Expense -->
+    <!-- FILTER BAR -->
+    <form method="get" class="mb-4">
+      <label class="form-label me-2">Filter:</label>
+      <select name="filter" onchange="this.form.submit()" class="form-select d-inline-block w-auto">
+        <option value="all" {% if selected_filter == 'all' %}selected{% endif %}>All Time</option>
+        <option value="month" {% if selected_filter == 'month' %}selected{% endif %}>This Month</option>
+        <option value="week" {% if selected_filter == 'week' %}selected{% endif %}>This Week</option>
+        <option value="fortnight" {% if selected_filter == 'fortnight' %}selected{% endif %}>Last 14 Days</option>
+      </select>
+    </form>
+
+    <!-- ADD FORM -->
     <div class="mb-5">
       <h4 class="mb-3 text-primary">➕ Add New Expense</h4>
       <form action="/add" method="POST">
         <div class="row g-3">
-          <div class="col-md-3">
-            <input type="date" name="date" class="form-control" required>
-          </div>
-          <div class="col-md-3">
-            <input type="text" name="category" class="form-control" placeholder="Category" required>
-          </div>
-          <div class="col-md-3">
-            <input type="text" name="description" class="form-control" placeholder="Description" required>
-          </div>
-          <div class="col-md-3">
-            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required>
-          </div>
+          <div class="col-md-3"><input type="date" name="date" class="form-control" required></div>
+          <div class="col-md-3"><input type="text" name="category" class="form-control" placeholder="Category" required></div>
+          <div class="col-md-3"><input type="text" name="description" class="form-control" placeholder="Description" required></div>
+          <div class="col-md-3"><input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required></div>
           <div class="col-12 text-end">
             <button type="submit" class="btn btn-success">Add Expense</button>
           </div>
@@ -34,9 +37,7 @@
       </form>
     </div>
 
-    <hr class="my-5">
-
-    <!-- Upload CSV -->
+    <!-- UPLOAD -->
     <div class="mb-5">
       <h4 class="mb-3 text-primary">📁 Upload CSV</h4>
       <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -47,7 +48,7 @@
       </form>
     </div>
 
-    <!-- Totals -->
+    <!-- SUMMARY -->
     <div class="mb-4">
       <h4>Total Spent: ${{ total }}</h4>
       <ul>
@@ -57,7 +58,13 @@
       </ul>
     </div>
 
-    <!-- Expense Table -->
+    <!-- CHART -->
+    <div class="mb-5">
+      <h4 class="mb-3">📊 Expenses by Category</h4>
+      <canvas id="expenseChart" height="100"></canvas>
+    </div>
+
+    <!-- TABLE -->
     <table class="table table-striped">
       <thead>
         <tr>
@@ -79,5 +86,33 @@
       </tbody>
     </table>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('expenseChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+          label: 'Total ($)',
+          data: {{ chart_data | tojson }},
+          backgroundColor: 'rgba(40, 167, 69, 0.6)',
+          borderRadius: 5
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }},
+        responsive: true,
+        scales: {
+          y: {
+            ticks: {
+              callback: value => '$' + value
+            }
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
