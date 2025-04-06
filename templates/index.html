@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-light">
   <!-- Navigation -->
@@ -24,122 +25,112 @@
   </nav>
 
   <div class="container py-4">
-    <!-- Header -->
     <div class="text-center mb-5">
       <h1 class="fw-bold text-purple">📅 Annual Monthly Budget Planner</h1>
       <p class="text-muted">Track monthly budget allocations and totals</p>
     </div>
 
-    <!-- Monthly Planner Table -->
-    <div class="card p-4 shadow-sm mb-5">
-      <h5 class="text-purple mb-4">📆 Year Overview</h5>
-      <div class="table-responsive">
-        <table class="table monthly-budget-table">
-          <thead class="table-light">
-            <tr>
-              <th>Category</th>
-              <th>January</th>
-              <th>February</th>
-              <th>March</th>
-              <th>April</th>
-              <th>May</th>
-              <th>June</th>
-              <th>July</th>
-              <th>August</th>
-              <th>September</th>
-              <th>October</th>
-              <th>November</th>
-              <th>December</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in planner_data %}
-            <tr>
-              <td class="text-start">{{ item.category }}</td>
-              {% for month in item.months %}
-              <td>${{ month }}</td>
-              {% endfor %}
-              <td class="fw-bold">${{ item.total }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Budget Summary Section -->
-    <div class="row g-4 mb-5">
-      <div class="col-md-4">
-        <div class="card p-4 shadow-sm">
-          <h6 class="text-muted">Total Budget</h6>
-          <h3 class="text-purple">${{ budget }}</h3>
+    <!-- INCOME SECTION -->
+    <div class="row align-items-start mb-5 gx-5">
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <h5 class="text-success">Incomes</h5>
+          <p>Total Income: <strong>${{ budget }}</strong></p>
+          <form method="POST" action="/add_income" class="d-flex flex-column gap-2">
+            <input type="text" name="source" class="form-control" placeholder="Source" required>
+            <input type="number" name="amount" step="0.01" class="form-control" placeholder="Amount" required>
+            <button type="submit" class="btn btn-success w-100">➕ Add Income</button>
+          </form>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card p-4 shadow-sm">
-          <h6 class="text-muted">Total Spent</h6>
-          <h3 class="text-danger">${{ total }}</h3>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card p-4 shadow-sm">
-          <h6 class="text-muted">Remaining</h6>
-          <h3 class="text-success">${{ remaining }}</h3>
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <canvas id="incomeChart" height="200"></canvas>
         </div>
       </div>
     </div>
 
-    {% if session.get("user_id") %}
-    <!-- Add Expense Form -->
-    <div class="card p-4 shadow-sm mb-5">
-      <h5 class="text-purple mb-3">➕ Add Expense</h5>
-      <form method="POST" action="/add" class="row g-3">
-        <div class="col-md-3">
-          <input type="date" name="date" class="form-control" required>
+    <!-- EXPENSE SECTION -->
+    <div class="row align-items-start mb-5 gx-5">
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <h5 class="text-danger">Expenses</h5>
+          <p>Total Expenses: <strong>${{ total }}</strong></p>
+          <form method="POST" action="/add" class="d-flex flex-column gap-2">
+            <input type="date" name="date" class="form-control" required>
+            <input type="text" name="category" class="form-control" placeholder="Category" required>
+            <input type="text" name="description" class="form-control" placeholder="Description" required>
+            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required>
+            <button type="submit" class="btn btn-danger w-100">➕ Add Expense</button>
+          </form>
         </div>
-        <div class="col-md-3">
-          <input type="text" name="category" class="form-control" placeholder="Category" required>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <canvas id="expenseAreaChart" height="200"></canvas>
         </div>
-        <div class="col-md-3">
-          <input type="text" name="description" class="form-control" placeholder="Description" required>
-        </div>
-        <div class="col-md-3">
-          <input type="number" name="amount" step="0.01" class="form-control" placeholder="Amount" required>
-        </div>
-        <div class="col-12 text-end">
-          <button class="btn btn-primary">Add</button>
-        </div>
-      </form>
+      </div>
     </div>
-    {% endif %}
 
-    <!-- Expense Table -->
-    <div class="card p-4 shadow-sm">
-      <h5 class="text-purple mb-3">📋 Expense Table</h5>
-      <div class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Description</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for exp in expenses %}
-            <tr>
-              <td>{{ exp.Date }}</td>
-              <td>{{ exp.Category }}</td>
-              <td>{{ exp.Description }}</td>
-              <td>${{ "%.2f"|format(exp.Amount) }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- SAVINGS SECTION -->
+    <div class="row align-items-start mb-5 gx-5">
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <h5 class="text-warning">Savings</h5>
+          <p>Total Savings: <strong>${{ savings_data | sum }}</strong></p>
+          <form method="POST" action="/add_savings" class="d-flex flex-column gap-2">
+            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required>
+            <button type="submit" class="btn btn-warning w-100">➕ Add Savings</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <canvas id="savingsChart" height="200"></canvas>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Chart Scripts -->
+  <script>
+    new Chart(document.getElementById('incomeChart'), {
+      type: 'pie',
+      data: {
+        labels: {{ income_labels | tojson }},
+        datasets: [{
+          data: {{ income_data | tojson }},
+          backgroundColor: ['#a7f3d0', '#6ee7b7', '#34d399']
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('expenseAreaChart'), {
+      type: 'line',
+      data: {
+        labels: {{ expense_labels | tojson }},
+        datasets: [{
+          data: {{ expense_data | tojson }},
+          fill: true,
+          backgroundColor: 'rgba(248, 113, 113, 0.2)',
+          borderColor: '#f87171'
+        }]
+      },
+      options: {scales: {y: {beginAtZero: true}}}
+    });
+
+    new Chart(document.getElementById('savingsChart'), {
+      type: 'bar',
+      data: {
+        labels: {{ savings_labels | tojson }},
+        datasets: [{
+          label: 'Savings',
+          data: {{ savings_data | tojson }},
+          backgroundColor: '#fde68a'
+        }]
+      },
+      options: {scales: {y: {beginAtZero: true}}}
+    });
+  </script>
 </body>
 </html>
