@@ -1,5 +1,16 @@
-body {
-    background-color: #f5f7fa;
+:root {
+    --purple-100: #f3e8ff;
+    --purple-200: #e9d5ff;
+    --purple-300: #d8b4fe;
+    --purple-400: #c084fc;
+    --purple-500: #a855f7;
+    --purple-600: #9333ea;
+    --purple-700: #7e22ce;
+    --gray-bg: #f9fafb;
+  }
+  
+  body {
+    background-color: var(--gray-bg);
     font-family: 'Segoe UI', sans-serif;
   }
   
@@ -12,15 +23,16 @@ body {
     margin-bottom: 2rem;
   }
   
-  .form-select,
-  .form-control {
-    border-radius: 0.5rem;
-  }
-  
   .section-title {
     font-size: 1.25rem;
     font-weight: 600;
+    color: var(--purple-600);
     margin-bottom: 1.5rem;
+  }
+  
+  .form-select,
+  .form-control {
+    border-radius: 0.5rem;
   }
   
   .chart-container {
@@ -30,6 +42,8 @@ body {
   
   .badge {
     font-size: 0.9rem;
+    background-color: var(--purple-200);
+    color: var(--purple-700);
   }
   
   .auth-card {
@@ -40,5 +54,37 @@ body {
     border-radius: 1rem;
     background-color: white;
     box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.05);
+  }
+  
+  .btn-primary,
+  .btn-success {
+    background-color: var(--purple-500);
+    border-color: var(--purple-500);
+  }
+  
+  .btn-primary:hover,
+  .btn-success:hover {
+    background-color: var(--purple-600);
+    border-color: var(--purple-600);
+  }
+  
+  .btn-outline-primary {
+    color: var(--purple-600);
+    border-color: var(--purple-300);
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: var(--purple-100);
+    color: var(--purple-600);
+    border-color: var(--purple-400);
+  }
+  
+  .navbar-custom {
+    background: linear-gradient(90deg, var(--purple-500), var(--purple-600));
+  }
+  
+  .navbar-custom .navbar-brand,
+  .navbar-custom a {
+    color: white !important;
   }
   
