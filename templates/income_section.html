@@ -28,12 +28,12 @@
               </td>
               <td>
                 <form method="POST" action="/set_goal" class="set-budget-form">
-                  <input type="hidden" name="name" value="{{ income.label }}">
-                  <input type="hidden" name="type" value="income">
+                  <input type="hidden" name="name" value="{{ income.label }}"> <!-- for expense use expense.label -->
+                  <input type="hidden" name="type" value="income"> <!-- or expense -->
                   <input type="number" name="amount" step="0.01" value="{{ income.goal }}" class="form-control form-control-sm">
-                  <button class="btn btn-sm btn-outline-success">Set Budget</button>
+                  <button class="btn btn-sm btn-outline-success">Set Budget</button> <!-- for expense use btn-outline-danger -->
                 </form>
-              </td>
+              </td>              
             </tr>
             {% endfor %}
           </tbody>

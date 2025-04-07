@@ -84,3 +84,22 @@ body {
   height: auto !important;
   max-height: 300px;
 }
+
+.table .set-budget-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.table .set-budget-form .form-control {
+  width: 100px;
+  flex: none;
+}
+
+.table .set-budget-form .btn {
+  white-space: nowrap;
+  flex: none;
+}
+
