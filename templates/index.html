@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Smart Budget Planner</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-dark text-light">
+<body>
+
+  <!-- Modern Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom shadow-sm mb-4">
     <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="/">💼 Smart Budget Planner</a>
+      <a class="navbar-brand fw-bold" href="/">Smart Budget Planner</a>
       <div>
         {% if session.get("user_id") %}
-          <a href="/logout" class="btn btn-light">Logout</a>
+          <a href="/logout" class="btn btn-outline-light ms-2">Logout</a>
         {% else %}
           <a href="/login" class="btn btn-outline-light me-2">Login</a>
           <a href="/register" class="btn btn-light">Register</a>
@@ -25,16 +27,19 @@
   </nav>
 
   <div class="container py-4">
+
+    <!-- Month Navigation -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <a href="/?month={{ prev_month }}" class="btn btn-outline-light">
         <i class="bi bi-chevron-left"></i>
       </a>
-      <h2 class="fw-bold text-center text-light">📅 {{ current_month.strftime('%B %Y') }}</h2>
+      <h2 class="fw-bold text-center text-light">{{ current_month.strftime('%B %Y') }}</h2>
       <a href="/?month={{ next_month }}" class="btn btn-outline-light">
         <i class="bi bi-chevron-right"></i>
       </a>
     </div>
 
+    <!-- Summary Cards -->
     <div class="row text-center mb-5">
       <div class="col-md-3 mb-3">
         <div class="card p-3">
@@ -57,15 +62,17 @@
       <div class="col-md-3 mb-3">
         <div class="card p-3">
           <h6 class="text-light">Over/Under Budget</h6>
-          <h4 class="{{ 'text-success' if remaining >= 0 else 'text-danger' }}">${{ remaining }}</h4>
+          <h4 class="{% if remaining >= 0 %}text-success{% else %}text-danger{% endif %}">${{ remaining }}</h4>
         </div>
       </div>
     </div>
 
+    <!-- Dashboard Sections (two-column layouts restored as requested) -->
     {% include 'income_section.html' %}
     {% include 'expense_section.html' %}
     {% include 'savings_section.html' %}
     {% include 'charts.html' %}
+
   </div>
 </body>
 </html>

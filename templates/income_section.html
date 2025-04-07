@@ -1,44 +1,52 @@
-<!-- Income Section -->
-<div class="section-wrapper mb-5">
-    <div class="section-block">
-      <h5 class="mb-3" style="color:#38b994">Income Overview</h5>
-      <p>Total Income: <strong>${{ budget }}</strong></p>
-      <form method="POST" action="/add_income" class="d-flex flex-column gap-2 mb-3">
-        <input type="text" name="source" class="form-control" placeholder="Source" required>
-        <input type="number" name="amount" step="0.01" class="form-control" placeholder="Amount" required>
-        <button type="submit" class="btn btn-success w-100">➕ Add Income</button>
-      </form>
-  
-      <table class="goal-table">
-        <thead>
-          <tr><th>Source</th><th>Goal</th><th>Actual</th><th>Difference</th><th>Set Budget</th></tr>
-        </thead>
-        <tbody>
-          {% for row in income_summary %}
-          <tr>
-            <td><i class="bi {{ row.icon }} me-2"></i>{{ row.label }}</td>
-            <td>${{ "%.2f"|format(row.goal) }}</td>
-            <td>${{ "%.2f"|format(row.actual) }}</td>
-            <td class="{% if row.diff < 0 %}text-danger{% else %}text-success{% endif %}">
-              {{ "+" if row.diff >= 0 else "" }}${{ "%.2f"|format(row.diff) }}
-            </td>
-            <td>
-              <form method="POST" action="/set_goal" class="d-flex align-items-center gap-2 goal-form">
-                <input type="hidden" name="name" value="{{ row.label }}">
-                <input type="hidden" name="type" value="income">
-                <input type="number" name="amount" step="0.01" value="{{ row.goal }}" class="form-control form-control-sm">
-                <button class="btn btn-sm btn-outline-primary">Save</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div class="row align-items-start mb-5 gx-5">
+    <div class="col-md-6">
+      <div class="card">
+        <h5 class="text-success">Incomes</h5>
+        <form method="POST" action="/add_income">
+          <input type="text" name="source" class="form-control mb-2" placeholder="Income Source" required>
+          <input type="number" name="amount" step="0.01" class="form-control mb-2" placeholder="Amount" required>
+          <button class="btn btn-success w-100">Add Income</button>
+        </form>
+        <table class="table table-bordered table-sm mt-4">
+          <thead>
+            <tr class="text-light">
+              <th>Category</th>
+              <th>Goal</th>
+              <th>Actual</th>
+              <th>Difference</th>
+              <th>Set Budget</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for income in income_summary %}
+            <tr>
+              <td><i class="bi {{ income.icon }} me-1"></i>{{ income.label }}</td>
+              <td>${{ "%.2f"|format(income.goal) }}</td>
+              <td>${{ "%.2f"|format(income.actual) }}</td>
+              <td class="{% if income.diff >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ "+" if income.diff >= 0 else "-" }}${{ "%.2f"|format(income.diff|abs) }}
+              </td>
+              <td>
+                <form method="POST" action="/set_goal">
+                  <input type="hidden" name="name" value="{{ income.label }}">
+                  <input type="hidden" name="type" value="income">
+                  <input type="number" name="amount" step="0.01" value="{{ income.goal }}" class="form-control form-control-sm">
+                  <button class="btn btn-sm btn-outline-success mt-1">Set Budget</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="section-block">
-      <canvas id="incomeChart" height="200"></canvas>
-      <hr class="my-4">
-      <canvas id="incomeBar" height="150"></canvas>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="row">
+          <div class="col-md-6"><canvas id="incomeChart"></canvas></div>
+          <div class="col-md-6"><canvas id="incomeBarChart"></canvas></div>
+        </div>
+      </div>
     </div>
   </div>
   

@@ -1,46 +1,54 @@
-<!-- Expense Section -->
-<div class="section-wrapper mb-5">
-    <div class="section-block">
-      <h5 class="mb-3" style="color:#ff578b">Expense Overview</h5>
-      <p>Total Expenses: <strong>${{ total }}</strong></p>
-      <form method="POST" action="/add" class="d-flex flex-column gap-2 mb-3">
-        <input type="date" name="date" class="form-control" required>
-        <input type="text" name="category" class="form-control" placeholder="Category" required>
-        <input type="text" name="description" class="form-control" placeholder="Description" required>
-        <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required>
-        <button type="submit" class="btn btn-danger w-100">➕ Add Expense</button>
-      </form>
-  
-      <table class="goal-table">
-        <thead>
-          <tr><th>Category</th><th>Budget</th><th>Actual</th><th>Difference</th><th>Set Budget</th></tr>
-        </thead>
-        <tbody>
-          {% for row in expense_summary %}
-          <tr>
-            <td><i class="bi {{ row.icon }} me-2"></i>{{ row.label }}</td>
-            <td>${{ "%.2f"|format(row.goal) }}</td>
-            <td>${{ "%.2f"|format(row.actual) }}</td>
-            <td class="{% if row.diff > 0 %}text-danger{% else %}text-success{% endif %}">
-              {{ "+" if row.diff <= 0 else "-" }}${{ "%.2f"|format(row.diff|abs) }}
-            </td>
-            <td>
-              <form method="POST" action="/set_goal" class="d-flex align-items-center gap-2 goal-form">
-                <input type="hidden" name="name" value="{{ row.label }}">
-                <input type="hidden" name="type" value="expense">
-                <input type="number" name="amount" step="0.01" value="{{ row.goal }}" class="form-control form-control-sm">
-                <button class="btn btn-sm btn-outline-primary">Save</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div class="row align-items-start mb-5 gx-5">
+    <div class="col-md-6">
+      <div class="card">
+        <h5 class="text-danger">Expenses</h5>
+        <form method="POST" action="/add">
+          <input type="date" name="date" class="form-control mb-2" required>
+          <input type="text" name="category" class="form-control mb-2" placeholder="Category" required>
+          <input type="text" name="description" class="form-control mb-2" placeholder="Description" required>
+          <input type="number" step="0.01" name="amount" class="form-control mb-2" placeholder="Amount" required>
+          <button class="btn btn-danger w-100">Add Expense</button>
+        </form>
+        <table class="table table-bordered table-sm mt-4">
+          <thead>
+            <tr class="text-light">
+              <th>Category</th>
+              <th>Budget</th>
+              <th>Actual</th>
+              <th>Difference</th>
+              <th>Set Budget</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for expense in expense_summary %}
+            <tr>
+              <td><i class="bi {{ expense.icon }} me-1"></i>{{ expense.label }}</td>
+              <td>${{ "%.2f"|format(expense.goal) }}</td>
+              <td>${{ "%.2f"|format(expense.actual) }}</td>
+              <td class="{% if expense.diff >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ "+" if expense.diff >= 0 else "-" }}${{ "%.2f"|format(expense.diff|abs) }}
+              </td>
+              <td>
+                <form method="POST" action="/set_goal">
+                  <input type="hidden" name="name" value="{{ expense.label }}">
+                  <input type="hidden" name="type" value="expense">
+                  <input type="number" name="amount" step="0.01" value="{{ expense.goal }}" class="form-control form-control-sm">
+                  <button class="btn btn-sm btn-outline-danger mt-1">Set Budget</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="section-block">
-      <canvas id="expenseAreaChart" height="200"></canvas>
-      <hr class="my-4">
-      <canvas id="expenseBar" height="150"></canvas>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="row">
+          <div class="col-md-6"><canvas id="expenseAreaChart"></canvas></div>
+          <div class="col-md-6"><canvas id="expenseBarChart"></canvas></div>
+        </div>
+      </div>
     </div>
   </div>
   
