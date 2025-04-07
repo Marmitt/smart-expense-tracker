@@ -83,7 +83,7 @@ def index():
     for category in expense_categories:
         actual = sum(e.amount for e in expenses if e.category == category)
         goal = goal_lookup.get((category, 'expense'), 0)
-        diff = actual - goal
+        diff = goal - actual
         expense_summary.append({"label": category, "icon": "bi-wallet", "goal": goal, "actual": actual, "diff": diff})
 
     income_labels = [i.source for i in incomes]
