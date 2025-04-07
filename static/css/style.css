@@ -1,3 +1,4 @@
+
 :root {
   --purple-100: #f3e8ff;
   --purple-200: #e9d5ff;
@@ -94,6 +95,9 @@ body {
   overflow: hidden;
   background: white;
   font-size: 0.95rem;
+  width: 100%;
+  text-align: center;
+  border-collapse: collapse;
 }
 
 .monthly-budget-table th,
@@ -107,16 +111,69 @@ body {
   background-color: #f6f6fb;
   font-weight: 600;
   color: #5b4b8a;
-  text-align: center;
-}
-
-.monthly-budget-table tbody td {
-  text-align: center;
-  color: #444;
 }
 
 .monthly-budget-table tbody td:first-child {
   text-align: left;
   font-weight: 500;
   background-color: #f9f9fc;
+}
+
+.goal-table {
+  width: 100%;
+  font-size: 0.95rem;
+  background: white;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  border: 1px solid #ddd;
+}
+
+.goal-table th,
+.goal-table td {
+  border: 1px solid #ddd;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+}
+
+.goal-table th {
+  background: #f4f4f8;
+  font-weight: 600;
+  color: #5a4e91;
+}
+
+.goal-table td:first-child {
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.goal-form input[type="number"] {
+  width: 80px;
+}
+
+.goal-form button {
+  white-space: nowrap;
+}
+
+.section-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-block {
+  flex: 1 1 48%;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+@media (max-width: 768px) {
+  .section-block {
+    flex: 1 1 100%;
+  }
+  .goal-form input[type="number"] {
+    width: 100%;
+  }
 }
