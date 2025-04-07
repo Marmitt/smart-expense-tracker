@@ -14,14 +14,14 @@
     
     function generateShades(baseColor, total) {
       let colors = [];
-      let baseStep = 0.15; // Medium variation now
+      let step = 0.15;
       for (let i = 0; i < total; i++) {
-        colors.push(shadeColor(baseColor, baseStep * i));
+        colors.push(shadeColor(baseColor, step * i));
       }
       return colors;
     }
     
-    // INCOME charts
+    // INCOME
     new Chart(document.getElementById('incomeChart'), {
       type: 'doughnut',
       data: {
@@ -47,7 +47,7 @@
       options: { indexAxis: 'y' }
     });
     
-    // EXPENSE charts
+    // EXPENSE
     new Chart(document.getElementById('expenseAreaChart'), {
       type: 'line',
       data: {
@@ -59,7 +59,11 @@
           borderColor: '#ff578b'
         }]
       },
-      options: { scales: { y: { beginAtZero: true } } }
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
     });
     
     new Chart(document.getElementById('expenseBarChart'), {
@@ -75,7 +79,7 @@
       options: { indexAxis: 'y' }
     });
     
-    // SAVINGS (no change)
+    // SAVINGS
     new Chart(document.getElementById('savingsChart'), {
       type: 'line',
       data: {

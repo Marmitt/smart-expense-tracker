@@ -103,3 +103,14 @@ body {
   flex: none;
 }
 
+canvas {
+  width: 100% !important;
+  max-height: 260px;
+}
+
+@media (min-width: 768px) {
+  .card .row canvas {
+    max-height: 220px;
+  }
+}
+
