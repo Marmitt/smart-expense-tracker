@@ -1,7 +1,7 @@
 <div class="row align-items-start mb-5 gx-5">
     <div class="col-md-6">
       <div class="card">
-        <h5 class="text-success">Incomes</h5>
+        <h5 class="income-title">Income</h5>
         <form method="POST" action="/add_income">
           <input type="text" name="source" class="form-control mb-2" placeholder="Income Source" required>
           <input type="number" name="amount" step="0.01" class="form-control mb-2" placeholder="Amount" required>
@@ -27,11 +27,11 @@
                 {{ "+" if income.diff >= 0 else "-" }}${{ "%.2f"|format(income.diff|abs) }}
               </td>
               <td>
-                <form method="POST" action="/set_goal">
+                <form method="POST" action="/set_goal" class="set-budget-form">
                   <input type="hidden" name="name" value="{{ income.label }}">
                   <input type="hidden" name="type" value="income">
                   <input type="number" name="amount" step="0.01" value="{{ income.goal }}" class="form-control form-control-sm">
-                  <button class="btn btn-sm btn-outline-success mt-1">Set Budget</button>
+                  <button class="btn btn-sm btn-outline-success">Set Budget</button>
                 </form>
               </td>
             </tr>

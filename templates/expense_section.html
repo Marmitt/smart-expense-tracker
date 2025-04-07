@@ -1,7 +1,7 @@
 <div class="row align-items-start mb-5 gx-5">
     <div class="col-md-6">
       <div class="card">
-        <h5 class="text-danger">Expenses</h5>
+        <h5 class="expense-title">Expenses</h5>
         <form method="POST" action="/add">
           <input type="date" name="date" class="form-control mb-2" required>
           <input type="text" name="category" class="form-control mb-2" placeholder="Category" required>
@@ -29,11 +29,11 @@
                 {{ "+" if expense.diff >= 0 else "-" }}${{ "%.2f"|format(expense.diff|abs) }}
               </td>
               <td>
-                <form method="POST" action="/set_goal">
+                <form method="POST" action="/set_goal" class="set-budget-form">
                   <input type="hidden" name="name" value="{{ expense.label }}">
                   <input type="hidden" name="type" value="expense">
                   <input type="number" name="amount" step="0.01" value="{{ expense.goal }}" class="form-control form-control-sm">
-                  <button class="btn btn-sm btn-outline-danger mt-1">Set Budget</button>
+                  <button class="btn btn-sm btn-outline-danger">Set Budget</button>
                 </form>
               </td>
             </tr>
@@ -43,10 +43,11 @@
       </div>
     </div>
     <div class="col-md-6">
-      <div class="card h-100">
-        <div class="row">
-          <div class="col-md-6"><canvas id="expenseAreaChart"></canvas></div>
-          <div class="col-md-6"><canvas id="expenseBarChart"></canvas></div>
+        <div class="card h-100">
+          <div class="row">
+            <div class="col-md-6"><canvas id="expenseAreaChart"></canvas></div>
+            <div class="col-md-6"><canvas id="expenseBarChart"></canvas></div>
+          </div>
         </div>
       </div>
     </div>
