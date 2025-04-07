@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import os
 
 app = Flask(__name__)
@@ -10,7 +10,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -41,7 +40,7 @@ class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(150), nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # 'income' or 'expense'
+    type = db.Column(db.String(50), nullable=False)
     amount = db.Column(db.Float, default=0.0)
 
 @app.route('/')
@@ -50,12 +49,25 @@ def index():
         return redirect(url_for('login'))
 
     user_id = session['user_id']
+    today = date.today()
+    current_month_str = request.args.get('month')
+    if current_month_str:
+        current_month = datetime.strptime(current_month_str, '%Y-%m')
+    else:
+        current_month = today.replace(day=1)
 
-    incomes = Income.query.filter_by(user_id=user_id).all()
-    expenses = Expense.query.filter_by(user_id=user_id).all()
-    savings = Saving.query.filter_by(user_id=user_id).all()
+    start_date = current_month.replace(day=1)
+    next_month = (start_date.replace(day=28) + timedelta(days=4)).replace(day=1)
+    end_date = next_month - timedelta(days=1)
+
+    prev_month = (start_date - timedelta(days=1)).replace(day=1).strftime('%Y-%m')
+    next_month_str = next_month.strftime('%Y-%m')
+
+    incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= start_date, Income.date <= end_date).all()
+    expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= start_date, Expense.date <= end_date).all()
+    savings = Saving.query.filter_by(user_id=user_id).filter(Saving.date >= start_date, Saving.date <= end_date).all()
     goals = Goal.query.filter_by(user_id=user_id).all()
-    
+
     goal_lookup = {(g.name, g.type): g.amount for g in goals}
 
     income_summary = []
@@ -64,13 +76,7 @@ def index():
         actual = sum(i.amount for i in incomes if i.source == source)
         goal = goal_lookup.get((source, 'income'), 0)
         diff = actual - goal
-        income_summary.append({
-            "label": source,
-            "icon": "bi-cash-stack",
-            "goal": goal,
-            "actual": actual,
-            "diff": diff
-        })
+        income_summary.append({"label": source, "icon": "bi-cash-stack", "goal": goal, "actual": actual, "diff": diff})
 
     expense_summary = []
     expense_categories = set(e.category for e in expenses)
@@ -78,28 +84,19 @@ def index():
         actual = sum(e.amount for e in expenses if e.category == category)
         goal = goal_lookup.get((category, 'expense'), 0)
         diff = actual - goal
-        expense_summary.append({
-            "label": category,
-            "icon": "bi-wallet",
-            "goal": goal,
-            "actual": actual,
-            "diff": diff
-        })
+        expense_summary.append({"label": category, "icon": "bi-wallet", "goal": goal, "actual": actual, "diff": diff})
 
     income_labels = [i.source for i in incomes]
     income_data = [i.amount for i in incomes]
-
     expense_labels = [e.category for e in expenses]
     expense_data = [e.amount for e in expenses]
-
     savings_labels = [s.date.strftime('%b') for s in savings]
     savings_data = [s.amount for s in savings]
 
     total_income = sum(income_data)
     total_expenses = sum(expense_data)
 
-    return render_template(
-        'index.html',
+    return render_template('index.html',
         income_labels=income_labels,
         income_data=income_data,
         expense_labels=expense_labels,
@@ -112,7 +109,10 @@ def index():
         planner_data=[],
         expenses=expenses,
         income_summary=income_summary,
-        expense_summary=expense_summary
+        expense_summary=expense_summary,
+        current_month=current_month,
+        prev_month=prev_month,
+        next_month=next_month_str
     )
 
 @app.route('/set_goal', methods=['POST'])
@@ -123,13 +123,12 @@ def set_goal():
     name = request.form['name']
     goal_type = request.form['type']
     amount = float(request.form['amount'])
-
     goal = Goal.query.filter_by(user_id=user_id, name=name, type=goal_type).first()
     if goal:
         goal.amount = amount
     else:
-        new_goal = Goal(user_id=user_id, name=name, type=goal_type, amount=amount)
-        db.session.add(new_goal)
+        goal = Goal(user_id=user_id, name=name, type=goal_type, amount=amount)
+        db.session.add(goal)
     db.session.commit()
     return redirect(url_for('index'))
 

@@ -1,0 +1,98 @@
+<script>
+    new Chart(document.getElementById('incomeChart'), {
+      type: 'doughnut',
+      data: {
+        labels: {{ income_labels | tojson }},
+        datasets: [{
+          data: {{ income_data | tojson }},
+          backgroundColor: ['#38b994', '#6ee7b7', '#34d399'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '60%',
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
+      }
+    });
+  
+    new Chart(document.getElementById('incomeBar'), {
+      type: 'bar',
+      data: {
+        labels: ['Total Income', 'Income Budget'],
+        datasets: [{
+          data: [{{ budget }}, {{ income_summary | map(attribute='goal') | sum }}],
+          backgroundColor: ['#38b994', '#c3f7e9']
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'white' } },
+          y: { ticks: { color: 'white' } }
+        }
+      }
+    });
+  
+    new Chart(document.getElementById('expenseAreaChart'), {
+      type: 'line',
+      data: {
+        labels: {{ expense_labels | tojson }},
+        datasets: [{
+          data: {{ expense_data | tojson }},
+          fill: true,
+          backgroundColor: 'rgba(255, 87, 139, 0.2)',
+          borderColor: '#ff578b'
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, ticks: { color: 'white' } },
+          x: { ticks: { color: 'white' } }
+        },
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
+      }
+    });
+  
+    new Chart(document.getElementById('expenseBar'), {
+      type: 'bar',
+      data: {
+        labels: ['Total Expenses', 'Expense Budget'],
+        datasets: [{
+          data: [{{ total }}, {{ expense_summary | map(attribute='goal') | sum }}],
+          backgroundColor: ['#ff578b', '#f7c3d4']
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'white' } },
+          y: { ticks: { color: 'white' } }
+        }
+      }
+    });
+  
+    new Chart(document.getElementById('savingsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Net Savings'],
+        datasets: [{
+          data: [{{ remaining }}],
+          backgroundColor: '#fde68a'
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: 'white' } },
+          x: { ticks: { color: 'white' } }
+        }
+      }
+    });
+  </script>
+  
