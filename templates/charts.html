@@ -62,7 +62,9 @@
       options: {
         maintainAspectRatio: false,
         responsive: true,
-        scales: { y: { beginAtZero: true } }
+        scales: {
+          y: { beginAtZero: true }
+        }
       }
     });
     
@@ -79,19 +81,45 @@
       options: { indexAxis: 'y' }
     });
     
-    // SAVINGS
+    // SAVINGS — 3 lines: Income, Expenses, Savings
     new Chart(document.getElementById('savingsChart'), {
       type: 'line',
       data: {
-        labels: {{ savings_labels|tojson }},
-        datasets: [{
-          data: {{ savings_data|tojson }},
-          fill: true,
-          backgroundColor: 'rgba(250,204,21,0.2)',
-          borderColor: '#facc15'
-        }]
+        labels: {{ savings_labels | tojson }},
+        datasets: [
+          {
+            label: 'Income',
+            data: {{ monthly_income | tojson }},
+            borderColor: '#38b994',
+            backgroundColor: 'rgba(56, 185, 148, 0.2)',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Expenses',
+            data: {{ monthly_expenses | tojson }},
+            borderColor: '#ff578b',
+            backgroundColor: 'rgba(255, 87, 139, 0.2)',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Savings',
+            data: {{ monthly_savings | tojson }},
+            borderColor: '#facc15',
+            backgroundColor: 'rgba(250, 204, 21, 0.2)',
+            fill: true,
+            tension: 0.3
+          }
+        ]
       },
-      options: { scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
     });
     </script>
     

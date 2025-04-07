@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
+from collections import defaultdict
 import os
 
 app = Flask(__name__)
@@ -70,6 +71,7 @@ def index():
 
     goal_lookup = {(g.name, g.type): g.amount for g in goals}
 
+    # Income summary
     income_summary = []
     income_sources = set(i.source for i in incomes)
     for source in income_sources:
@@ -78,6 +80,7 @@ def index():
         diff = actual - goal
         income_summary.append({"label": source, "icon": "bi-cash-stack", "goal": goal, "actual": actual, "diff": diff})
 
+    # Expense summary
     expense_summary = []
     expense_categories = set(e.category for e in expenses)
     for category in expense_categories:
@@ -96,13 +99,40 @@ def index():
     total_income = sum(income_data)
     total_expenses = sum(expense_data)
 
+    # NEW: Monthly chart for savings
+    monthly_income = defaultdict(float)
+    monthly_expenses = defaultdict(float)
+
+    for i in Income.query.filter_by(user_id=user_id).all():
+        month = i.date.strftime('%b')
+        monthly_income[month] += i.amount
+
+    for e in Expense.query.filter_by(user_id=user_id).all():
+        month = e.date.strftime('%b')
+        monthly_expenses[month] += e.amount
+
+    months_order = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    monthly_income_list = []
+    monthly_expense_list = []
+    monthly_savings_list = []
+
+    for m in months_order:
+        income_val = monthly_income[m]
+        expense_val = monthly_expenses[m]
+        monthly_income_list.append(income_val)
+        monthly_expense_list.append(expense_val)
+        monthly_savings_list.append(income_val - expense_val)
+
     return render_template('index.html',
         income_labels=income_labels,
         income_data=income_data,
         expense_labels=expense_labels,
         expense_data=expense_data,
-        savings_labels=savings_labels,
+        savings_labels=months_order,
         savings_data=savings_data,
+        monthly_income=monthly_income_list,
+        monthly_expenses=monthly_expense_list,
+        monthly_savings=monthly_savings_list,
         budget=total_income,
         total=total_expenses,
         remaining=total_income - total_expenses,
