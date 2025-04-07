@@ -1,19 +1,8 @@
 <div class="row align-items-start mb-5 gx-5">
-    <!-- Input (Left Column) -->
-    <div class="col-md-6">
-      <div class="card h-100">
-        <h5 class="text-warning">Savings</h5>
-        <form method="POST" action="/add_savings">
-          <input type="number" name="amount" step="0.01" class="form-control mb-2" placeholder="Amount" required>
-          <button class="btn btn-warning w-100">Add Savings</button>
-        </form>
-      </div>
-    </div>
-  
-    <!-- Savings Chart (Right Column) -->
-    <div class="col-md-6">
-      <div class="card h-100">
-        <canvas id="savingsChart"></canvas>
+    <div class="col-md-12">
+      <div class="card h-100 text-center">
+        <h5 class="text-warning">Savings Overview</h5>
+        <canvas id="savingsChart" style="max-height: 300px;"></canvas>
       </div>
     </div>
   </div>
