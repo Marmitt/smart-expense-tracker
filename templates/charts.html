@@ -1,9 +1,35 @@
 <script>
+    function shadeColor(color, percent) {
+      let f = parseInt(color.slice(1), 16),
+          t = percent < 0 ? 0 : 255,
+          p = percent < 0 ? percent * -1 : percent,
+          R = f >> 16,
+          G = f >> 8 & 0x00FF,
+          B = f & 0x0000FF;
+      return "#" + (0x1000000 +
+        (Math.round((t - R) * p) + R) * 0x10000 +
+        (Math.round((t - G) * p) + G) * 0x100 +
+        (Math.round((t - B) * p) + B)).toString(16).slice(1);
+    }
+    
+    function generateShades(baseColor, total) {
+      let colors = [];
+      let baseStep = 0.15; // Medium variation now
+      for (let i = 0; i < total; i++) {
+        colors.push(shadeColor(baseColor, baseStep * i));
+      }
+      return colors;
+    }
+    
+    // INCOME charts
     new Chart(document.getElementById('incomeChart'), {
       type: 'doughnut',
       data: {
-        labels: {{ income_labels | tojson }},
-        datasets: [{ data: {{ income_data | tojson }}, backgroundColor: ['#38b994', '#4ddbb0'] }]
+        labels: {{ income_labels|tojson }},
+        datasets: [{
+          data: {{ income_data|tojson }},
+          backgroundColor: generateShades("#38b994", {{ income_data|length }})
+        }]
       },
       options: { cutout: '60%' }
     });
@@ -11,43 +37,57 @@
     new Chart(document.getElementById('incomeBarChart'), {
       type: 'bar',
       data: {
-        labels: {{ income_summary | map(attribute='label') | list | tojson }},
-        datasets: [
-          {label:'Actual',data:{{ income_summary | map(attribute='actual') | list | tojson }},backgroundColor:'#38b994'},
-          {label:'Goal',data:{{ income_summary | map(attribute='goal') | list | tojson }},backgroundColor:'#4ddbb0'}
-        ]
+        labels: {{ income_summary|map(attribute='label')|list|tojson }},
+        datasets: [{
+          label: 'Actual',
+          data: {{ income_summary|map(attribute='actual')|list|tojson }},
+          backgroundColor: generateShades("#38b994", {{ income_summary|length }})
+        }]
       },
       options: { indexAxis: 'y' }
     });
     
+    // EXPENSE charts
     new Chart(document.getElementById('expenseAreaChart'), {
       type: 'line',
       data: {
-        labels: {{ expense_labels | tojson }},
-        datasets: [{data:{{ expense_data | tojson }},fill:true,backgroundColor:'rgba(255,87,139,0.2)',borderColor:'#ff578b'}]
+        labels: {{ expense_labels|tojson }},
+        datasets: [{
+          data: {{ expense_data|tojson }},
+          fill: true,
+          backgroundColor: 'rgba(255,87,139,0.2)',
+          borderColor: '#ff578b'
+        }]
       },
-      options: { scales: { y: {beginAtZero:true} } }
+      options: { scales: { y: { beginAtZero: true } } }
     });
     
     new Chart(document.getElementById('expenseBarChart'), {
       type: 'bar',
       data: {
-        labels: {{ expense_summary | map(attribute='label') | list | tojson }},
-        datasets: [
-          {label:'Actual',data:{{ expense_summary | map(attribute='actual') | list | tojson }},backgroundColor:'#ff578b'},
-          {label:'Budget',data:{{ expense_summary | map(attribute='goal') | list | tojson }},backgroundColor:'#f191b3'}
-        ]
+        labels: {{ expense_summary|map(attribute='label')|list|tojson }},
+        datasets: [{
+          label: 'Actual',
+          data: {{ expense_summary|map(attribute='actual')|list|tojson }},
+          backgroundColor: generateShades("#ff578b", {{ expense_summary|length }})
+        }]
       },
       options: { indexAxis: 'y' }
     });
     
+    // SAVINGS (no change)
     new Chart(document.getElementById('savingsChart'), {
       type: 'line',
       data: {
-        labels: {{ savings_labels | tojson }},
-        datasets: [{data:{{ savings_data | tojson }},fill:true,backgroundColor:'rgba(250,204,21,0.2)',borderColor:'#facc15'}]
+        labels: {{ savings_labels|tojson }},
+        datasets: [{
+          data: {{ savings_data|tojson }},
+          fill: true,
+          backgroundColor: 'rgba(250,204,21,0.2)',
+          borderColor: '#facc15'
+        }]
       },
-      options: { scales: { y: {beginAtZero:true} } }
+      options: { scales: { y: { beginAtZero: true } } }
     });
     </script>
     
