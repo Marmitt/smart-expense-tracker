@@ -30,7 +30,7 @@
     <!-- INCOME SECTION -->
     <div class="section-wrapper mb-5">
       <div class="section-block">
-        <h5 class="text-success mb-3">Income Overview</h5>
+        <h5 class="mb-3" style="color:#38b994">Income Overview</h5>
         <p>Total Income: <strong>${{ budget }}</strong></p>
         <form method="POST" action="/add_income" class="d-flex flex-column gap-2 mb-3">
           <input type="text" name="source" class="form-control" placeholder="Source" required>
@@ -40,7 +40,7 @@
 
         <table class="goal-table">
           <thead>
-            <tr><th>Source</th><th>Goal</th><th>Actual</th><th>Difference</th><th>Edit</th></tr>
+            <tr><th>Source</th><th>Goal</th><th>Actual</th><th>Difference</th><th>Set Budget</th></tr>
           </thead>
           <tbody>
             {% for row in income_summary %}
@@ -72,7 +72,7 @@
     <!-- EXPENSE SECTION -->
     <div class="section-wrapper mb-5">
       <div class="section-block">
-        <h5 class="text-danger mb-3">Expense Overview</h5>
+        <h5 class="mb-3" style="color:#ff578b">Expense Overview</h5>
         <p>Total Expenses: <strong>${{ total }}</strong></p>
         <form method="POST" action="/add" class="d-flex flex-column gap-2 mb-3">
           <input type="date" name="date" class="form-control" required>
@@ -84,7 +84,7 @@
 
         <table class="goal-table">
           <thead>
-            <tr><th>Category</th><th>Budget</th><th>Actual</th><th>Difference</th><th>Edit</th></tr>
+            <tr><th>Category</th><th>Budget</th><th>Actual</th><th>Difference</th><th>Set Budget</th></tr>
           </thead>
           <tbody>
             {% for row in expense_summary %}
@@ -131,13 +131,20 @@
 
   <script>
     new Chart(document.getElementById('incomeChart'), {
-      type: 'pie',
+      type: 'doughnut',
       data: {
         labels: {{ income_labels | tojson }},
         datasets: [{
           data: {{ income_data | tojson }},
-          backgroundColor: ['#a7f3d0', '#6ee7b7', '#34d399']
+          backgroundColor: ['#38b994', '#6ee7b7', '#34d399'],
+          borderWidth: 0
         }]
+      },
+      options: {
+        cutout: '60%',
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
       }
     });
 
@@ -148,11 +155,19 @@
         datasets: [{
           data: {{ expense_data | tojson }},
           fill: true,
-          backgroundColor: 'rgba(248, 113, 113, 0.2)',
-          borderColor: '#f87171'
+          backgroundColor: 'rgba(255, 87, 139, 0.2)',
+          borderColor: '#ff578b'
         }]
       },
-      options: {scales: {y: {beginAtZero: true}}}
+      options: {
+        scales: {
+          y: { beginAtZero: true, ticks: { color: 'white' } },
+          x: { ticks: { color: 'white' } }
+        },
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
+      }
     });
 
     new Chart(document.getElementById('savingsChart'), {
@@ -165,7 +180,15 @@
           backgroundColor: '#fde68a'
         }]
       },
-      options: {scales: {y: {beginAtZero: true}}}
+      options: {
+        scales: {
+          y: { beginAtZero: true, ticks: { color: 'white' } },
+          x: { ticks: { color: 'white' } }
+        },
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        }
+      }
     });
   </script>
 </body>
