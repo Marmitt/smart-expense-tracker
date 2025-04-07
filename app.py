@@ -37,16 +37,54 @@ class Saving(db.Model):
     amount = db.Column(db.Float, nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
 
-# Routes
+class Goal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'income' or 'expense'
+    amount = db.Column(db.Float, default=0.0)
+
 @app.route('/')
 def index():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
     user_id = session['user_id']
+
     incomes = Income.query.filter_by(user_id=user_id).all()
     expenses = Expense.query.filter_by(user_id=user_id).all()
     savings = Saving.query.filter_by(user_id=user_id).all()
+    goals = Goal.query.filter_by(user_id=user_id).all()
+    
+    goal_lookup = {(g.name, g.type): g.amount for g in goals}
+
+    income_summary = []
+    income_sources = set(i.source for i in incomes)
+    for source in income_sources:
+        actual = sum(i.amount for i in incomes if i.source == source)
+        goal = goal_lookup.get((source, 'income'), 0)
+        diff = actual - goal
+        income_summary.append({
+            "label": source,
+            "icon": "bi-cash-stack",
+            "goal": goal,
+            "actual": actual,
+            "diff": diff
+        })
+
+    expense_summary = []
+    expense_categories = set(e.category for e in expenses)
+    for category in expense_categories:
+        actual = sum(e.amount for e in expenses if e.category == category)
+        goal = goal_lookup.get((category, 'expense'), 0)
+        diff = actual - goal
+        expense_summary.append({
+            "label": category,
+            "icon": "bi-wallet",
+            "goal": goal,
+            "actual": actual,
+            "diff": diff
+        })
 
     income_labels = [i.source for i in incomes]
     income_data = [i.amount for i in incomes]
@@ -72,8 +110,28 @@ def index():
         total=total_expenses,
         remaining=total_income - total_expenses,
         planner_data=[],
-        expenses=expenses
+        expenses=expenses,
+        income_summary=income_summary,
+        expense_summary=expense_summary
     )
+
+@app.route('/set_goal', methods=['POST'])
+def set_goal():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    name = request.form['name']
+    goal_type = request.form['type']
+    amount = float(request.form['amount'])
+
+    goal = Goal.query.filter_by(user_id=user_id, name=name, type=goal_type).first()
+    if goal:
+        goal.amount = amount
+    else:
+        new_goal = Goal(user_id=user_id, name=name, type=goal_type, amount=amount)
+        db.session.add(new_goal)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -131,7 +189,6 @@ def add_savings():
     db.session.commit()
     return redirect(url_for('index'))
 
-# Startup
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
