@@ -65,7 +65,9 @@
         </table>
       </div>
       <div class="section-block">
-        <canvas id="incomeChart" height="250"></canvas>
+        <canvas id="incomeChart" height="200"></canvas>
+        <hr class="my-4">
+        <canvas id="incomeBar" height="150"></canvas>
       </div>
     </div>
 
@@ -109,7 +111,9 @@
         </table>
       </div>
       <div class="section-block">
-        <canvas id="expenseAreaChart" height="250"></canvas>
+        <canvas id="expenseAreaChart" height="200"></canvas>
+        <hr class="my-4">
+        <canvas id="expenseBar" height="150"></canvas>
       </div>
     </div>
 
@@ -117,14 +121,14 @@
     <div class="section-wrapper">
       <div class="section-block">
         <h5 class="text-warning mb-3">Savings</h5>
-        <p>Total Savings: <strong>${{ savings_data | sum }}</strong></p>
+        <p>Total Savings: <strong>${{ remaining }}</strong></p>
         <form method="POST" action="/add_savings" class="d-flex flex-column gap-2">
           <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount" required>
           <button type="submit" class="btn btn-warning w-100">➕ Add Savings</button>
         </form>
       </div>
       <div class="section-block">
-        <canvas id="savingsChart" height="250"></canvas>
+        <canvas id="savingsChart" height="200"></canvas>
       </div>
     </div>
   </div>
@@ -142,9 +146,23 @@
       },
       options: {
         cutout: '60%',
-        plugins: {
-          legend: { labels: { color: 'white' } }
-        }
+        plugins: { legend: { labels: { color: 'white' } } }
+      }
+    });
+
+    new Chart(document.getElementById('incomeBar'), {
+      type: 'bar',
+      data: {
+        labels: ['Total Income', 'Income Budget'],
+        datasets: [{
+          data: [{{ budget }}, {{ income_summary | map(attribute='goal') | sum }}],
+          backgroundColor: ['#38b994', '#c3f7e9']
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } }
       }
     });
 
@@ -170,23 +188,36 @@
       }
     });
 
+    new Chart(document.getElementById('expenseBar'), {
+      type: 'bar',
+      data: {
+        labels: ['Total Expenses', 'Expense Budget'],
+        datasets: [{
+          data: [{{ total }}, {{ expense_summary | map(attribute='goal') | sum }}],
+          backgroundColor: ['#ff578b', '#f7c3d4']
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } }
+      }
+    });
+
     new Chart(document.getElementById('savingsChart'), {
       type: 'bar',
       data: {
-        labels: {{ savings_labels | tojson }},
+        labels: ['Net Savings'],
         datasets: [{
-          label: 'Savings',
-          data: {{ savings_data | tojson }},
+          data: [{{ remaining }}],
           backgroundColor: '#fde68a'
         }]
       },
       options: {
+        plugins: { legend: { display: false } },
         scales: {
           y: { beginAtZero: true, ticks: { color: 'white' } },
           x: { ticks: { color: 'white' } }
-        },
-        plugins: {
-          legend: { labels: { color: 'white' } }
         }
       }
     });
