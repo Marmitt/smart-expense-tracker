@@ -27,7 +27,6 @@ class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.String(255))
     amount = db.Column(db.Float, nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
 
@@ -224,13 +223,11 @@ def add_expense():
         return redirect(url_for('login'))
     date = datetime.strptime(request.form['date'], '%Y-%m-%d')
     category = request.form['category']
-    description = request.form['description']
     amount = float(request.form['amount'])
     new_expense = Expense(
         user_id=session['user_id'],
         date=date,
         category=category,
-        description=description,
         amount=amount
     )
     db.session.add(new_expense)
