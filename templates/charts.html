@@ -1,125 +1,168 @@
 <script>
-    function shadeColor(color, percent) {
-      let f = parseInt(color.slice(1), 16),
-          t = percent < 0 ? 0 : 255,
-          p = percent < 0 ? percent * -1 : percent,
-          R = f >> 16,
-          G = f >> 8 & 0x00FF,
-          B = f & 0x0000FF;
-      return "#" + (0x1000000 +
-        (Math.round((t - R) * p) + R) * 0x10000 +
-        (Math.round((t - G) * p) + G) * 0x100 +
-        (Math.round((t - B) * p) + B)).toString(16).slice(1);
+  // Utility to generate lighter/darker shades of a base color
+  function shadeColor(color, percent) {
+    let f = parseInt(color.slice(1), 16),
+        t = percent < 0 ? 0 : 255,
+        p = percent < 0 ? percent * -1 : percent,
+        R = f >> 16,
+        G = f >> 8 & 0x00FF,
+        B = f & 0x0000FF;
+    return "#" + (0x1000000 +
+      (Math.round((t - R) * p) + R) * 0x10000 +
+      (Math.round((t - G) * p) + G) * 0x100 +
+      (Math.round((t - B) * p) + B)).toString(16).slice(1);
+  }
+
+  function generateShades(baseColor, total) {
+    let colors = [];
+    let step = 0.15;
+    for (let i = 0; i < total; i++) {
+      colors.push(shadeColor(baseColor, step * i));
     }
-    
-    function generateShades(baseColor, total) {
-      let colors = [];
-      let step = 0.15;
-      for (let i = 0; i < total; i++) {
-        colors.push(shadeColor(baseColor, step * i));
-      }
-      return colors;
-    }
-    
-    // INCOME
-    new Chart(document.getElementById('incomeChart'), {
-      type: 'doughnut',
-      data: {
-        labels: {{ income_labels|tojson }},
-        datasets: [{
-          data: {{ income_data|tojson }},
-          backgroundColor: generateShades("#38b994", {{ income_data|length }})
-        }]
-      },
-      options: { cutout: '60%' }
-    });
-    
-    new Chart(document.getElementById('incomeBarChart'), {
-      type: 'bar',
-      data: {
-        labels: {{ income_summary|map(attribute='label')|list|tojson }},
-        datasets: [{
+    return colors;
+  }
+
+  // INCOME Doughnut Chart
+  new Chart(document.getElementById('incomeChart'), {
+    type: 'doughnut',
+    data: {
+      labels: {{ income_labels|tojson }},
+      datasets: [{
+        data: {{ income_data|tojson }},
+        backgroundColor: generateShades("#38b994", {{ income_data|length }})
+      }]
+    },
+    options: { cutout: '60%' }
+  });
+
+  // INCOME Horizontal Bar Chart (Goal vs Actual)
+  const incomeLabels = {{ income_summary | map(attribute='label') | list | tojson }};
+  const incomeActual = {{ income_summary | map(attribute='actual') | list | tojson }};
+  const incomeGoal = {{ income_summary | map(attribute='goal') | list | tojson }};
+
+  new Chart(document.getElementById('incomeBarChart'), {
+    type: 'bar',
+    data: {
+      labels: incomeLabels,
+      datasets: [
+        {
+          label: 'Goal',
+          data: incomeGoal,
+          backgroundColor: generateShades("#d1fae5", incomeGoal.length)
+        },
+        {
           label: 'Actual',
-          data: {{ income_summary|map(attribute='actual')|list|tojson }},
-          backgroundColor: generateShades("#38b994", {{ income_summary|length }})
-        }]
+          data: incomeActual,
+          backgroundColor: generateShades("#38b994", incomeActual.length)
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' }
       },
-      options: { indexAxis: 'y' }
-    });
-    
-    // EXPENSE
-    new Chart(document.getElementById('expenseAreaChart'), {
-      type: 'line',
-      data: {
-        labels: {{ expense_labels|tojson }},
-        datasets: [{
-          data: {{ expense_data|tojson }},
+      scales: {
+        x: { beginAtZero: true }
+      }
+    }
+  });
+
+  // EXPENSE Area Chart
+  new Chart(document.getElementById('expenseAreaChart'), {
+    type: 'line',
+    data: {
+      labels: {{ expense_labels|tojson }},
+      datasets: [{
+        data: {{ expense_data|tojson }},
+        fill: true,
+        backgroundColor: 'rgba(255,87,139,0.2)',
+        borderColor: '#ff578b',
+        tension: 0.3
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // EXPENSE Horizontal Bar Chart (Budget vs Actual)
+  const expenseLabels = {{ expense_summary | map(attribute='label') | list | tojson }};
+  const expenseActual = {{ expense_summary | map(attribute='actual') | list | tojson }};
+  const expenseGoal = {{ expense_summary | map(attribute='goal') | list | tojson }};
+
+  new Chart(document.getElementById('expenseBarChart'), {
+    type: 'bar',
+    data: {
+      labels: expenseLabels,
+      datasets: [
+        {
+          label: 'Budget',
+          data: expenseGoal,
+          backgroundColor: generateShades("#fee2e2", expenseGoal.length)
+        },
+        {
+          label: 'Actual',
+          data: expenseActual,
+          backgroundColor: generateShades("#ff578b", expenseActual.length)
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        x: { beginAtZero: true }
+      }
+    }
+  });
+
+  // SAVINGS Line Chart (Income vs Expenses vs Savings)
+  new Chart(document.getElementById('savingsChart'), {
+    type: 'line',
+    data: {
+      labels: {{ savings_labels | tojson }},
+      datasets: [
+        {
+          label: 'Income',
+          data: {{ monthly_income | tojson }},
+          borderColor: '#38b994',
+          backgroundColor: 'rgba(56, 185, 148, 0.2)',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Expenses',
+          data: {{ monthly_expenses | tojson }},
+          borderColor: '#ff578b',
+          backgroundColor: 'rgba(255, 87, 139, 0.2)',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Savings',
+          data: {{ monthly_savings | tojson }},
+          borderColor: '#facc15',
+          backgroundColor: 'rgba(250, 204, 21, 0.2)',
           fill: true,
-          backgroundColor: 'rgba(255,87,139,0.2)',
-          borderColor: '#ff578b'
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
+          tension: 0.3
         }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
       }
-    });
-    
-    new Chart(document.getElementById('expenseBarChart'), {
-      type: 'bar',
-      data: {
-        labels: {{ expense_summary|map(attribute='label')|list|tojson }},
-        datasets: [{
-          label: 'Actual',
-          data: {{ expense_summary|map(attribute='actual')|list|tojson }},
-          backgroundColor: generateShades("#ff578b", {{ expense_summary|length }})
-        }]
-      },
-      options: { indexAxis: 'y' }
-    });
-    
-    // SAVINGS — 3 lines: Income, Expenses, Savings
-    new Chart(document.getElementById('savingsChart'), {
-      type: 'line',
-      data: {
-        labels: {{ savings_labels | tojson }},
-        datasets: [
-          {
-            label: 'Income',
-            data: {{ monthly_income | tojson }},
-            borderColor: '#38b994',
-            backgroundColor: 'rgba(56, 185, 148, 0.2)',
-            fill: false,
-            tension: 0.3
-          },
-          {
-            label: 'Expenses',
-            data: {{ monthly_expenses | tojson }},
-            borderColor: '#ff578b',
-            backgroundColor: 'rgba(255, 87, 139, 0.2)',
-            fill: false,
-            tension: 0.3
-          },
-          {
-            label: 'Savings',
-            data: {{ monthly_savings | tojson }},
-            borderColor: '#facc15',
-            backgroundColor: 'rgba(250, 204, 21, 0.2)',
-            fill: true,
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-    </script>
-    
+    }
+  });
+</script>
