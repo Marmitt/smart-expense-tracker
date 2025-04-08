@@ -2,7 +2,9 @@
 
 **A modern full-stack budget tracking application** built with Flask, SQLite/PostgreSQL, Chart.js, and Bootstrap — allowing users to manage income, expenses, goals, and savings with a beautiful and responsive UI.
 
-Live Demo: https://smart-expense-tracker-n3xu.onrender.com
+## 🌐 Live Demo
+
+🔗 View it live on Render: https://smart-expense-tracker-n3xu.onrender.com
 
 ---
 
