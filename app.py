@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
 from collections import defaultdict
+from calendar import month_abbr
 import os
 
 app = Flask(__name__)
@@ -47,19 +48,15 @@ class Goal(db.Model):
 def index():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
+    
     user_id = session['user_id']
     today = date.today()
     current_month_str = request.args.get('month')
-    if current_month_str:
-        current_month = datetime.strptime(current_month_str, '%Y-%m')
-    else:
-        current_month = today.replace(day=1)
-
+    current_month = datetime.strptime(current_month_str, '%Y-%m') if current_month_str else today.replace(day=1)
+    
     start_date = current_month.replace(day=1)
     next_month = (start_date.replace(day=28) + timedelta(days=4)).replace(day=1)
     end_date = next_month - timedelta(days=1)
-
     prev_month = (start_date - timedelta(days=1)).replace(day=1).strftime('%Y-%m')
     next_month_str = next_month.strftime('%Y-%m')
 
@@ -70,18 +67,15 @@ def index():
 
     goal_lookup = {(g.name, g.type): g.amount for g in goals}
 
-    # Income summary
     income_summary = []
     income_sources = set(i.source for i in incomes)
     for source in income_sources:
         actual = sum(i.amount for i in incomes if i.source == source)
         goal = goal_lookup.get((source, 'income'), 0)
         diff = actual - goal
-        
-        # Get one real income ID to use for update
-        sample_income = next((i for i in incomes if i.source == source), None)
+        sample = next((i for i in incomes if i.source == source), None)
         income_summary.append({
-            "id": sample_income.id if sample_income else None,
+            "id": sample.id if sample else None,
             "label": source,
             "icon": "bi-cash-stack",
             "goal": goal,
@@ -89,18 +83,15 @@ def index():
             "diff": diff
         })
 
-
-    # Expense summary
     expense_summary = []
     expense_categories = set(e.category for e in expenses)
     for category in expense_categories:
         actual = sum(e.amount for e in expenses if e.category == category)
         goal = goal_lookup.get((category, 'expense'), 0)
         diff = goal - actual
-        
-        sample_expense = next((e for e in expenses if e.category == category), None)
+        sample = next((e for e in expenses if e.category == category), None)
         expense_summary.append({
-            "id": sample_expense.id if sample_expense else None,
+            "id": sample.id if sample else None,
             "label": category,
             "icon": "bi-wallet",
             "goal": goal,
@@ -118,68 +109,60 @@ def index():
     total_income = sum(income_data)
     total_expenses = sum(expense_data)
 
-    # NEW: Monthly chart for savings
+    # Monthly summary for savings chart
     monthly_income = defaultdict(float)
     monthly_expenses = defaultdict(float)
-
     for i in Income.query.filter_by(user_id=user_id).all():
-        month = i.date.strftime('%b')
-        monthly_income[month] += i.amount
-
+        monthly_income[i.date.strftime('%b')] += i.amount
     for e in Expense.query.filter_by(user_id=user_id).all():
-        month = e.date.strftime('%b')
-        monthly_expenses[month] += e.amount
+        monthly_expenses[e.date.strftime('%b')] += e.amount
 
-    months_order = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-    monthly_income_list = []
-    monthly_expense_list = []
-    monthly_savings_list = []
+    months_order = list(month_abbr)[1:]  # Jan - Dec
+    monthly_income_list = [monthly_income[m] for m in months_order]
+    monthly_expense_list = [monthly_expenses[m] for m in months_order]
+    monthly_savings_list = [monthly_income[m] - monthly_expenses[m] for m in months_order]
 
-    for m in months_order:
-        income_val = monthly_income[m]
-        expense_val = monthly_expenses[m]
-        monthly_income_list.append(income_val)
-        monthly_expense_list.append(expense_val)
-        monthly_savings_list.append(income_val - expense_val)
+    monthly_actual_income = []
+    monthly_goal_income = []
+    for i in range(1, 13):
+        m_start = date(today.year, i, 1)
+        m_end = (m_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        m_incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= m_start, Income.date <= m_end).all()
+        actual = sum(i.amount for i in m_incomes)
+        goal = sum(goal_lookup.get((i.source, "income"), 0) for i in m_incomes)
+        monthly_actual_income.append(actual)
+        monthly_goal_income.append(goal)
 
-    return render_template('index.html',
+    return render_template("index.html",
         income_labels=income_labels,
         income_data=income_data,
+        income_summary=income_summary,
+        incomeGoal=[item["goal"] for item in income_summary],
+        incomeActual=[item["actual"] for item in income_summary],
+
         expense_labels=expense_labels,
         expense_data=expense_data,
+        expense_summary=expense_summary,
+
         savings_labels=months_order,
         savings_data=savings_data,
         monthly_income=monthly_income_list,
         monthly_expenses=monthly_expense_list,
         monthly_savings=monthly_savings_list,
+
+        monthly_income_labels=months_order,
+        monthly_actual_income=monthly_actual_income,
+        monthly_goal_income=monthly_goal_income,
+
         budget=total_income,
         total=total_expenses,
         remaining=total_income - total_expenses,
         planner_data=[],
         expenses=expenses,
-        income_summary=income_summary,
-        expense_summary=expense_summary,
         current_month=current_month,
         prev_month=prev_month,
         next_month=next_month_str
     )
-
-@app.route('/set_goal', methods=['POST'])
-def set_goal():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    user_id = session['user_id']
-    name = request.form['name']
-    goal_type = request.form['type']
-    amount = float(request.form['amount'])
-    goal = Goal.query.filter_by(user_id=user_id, name=name, type=goal_type).first()
-    if goal:
-        goal.amount = amount
-    else:
-        goal = Goal(user_id=user_id, name=name, type=goal_type, amount=amount)
-        db.session.add(goal)
-    db.session.commit()
-    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -209,11 +192,10 @@ def logout():
 def add_income():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    source = request.form['source']
-    amount = float(request.form['amount'])
     date_str = request.form['date']
     income_date = datetime.strptime(date_str, '%Y-%m-%d')
-    db.session.add(Income(user_id=session['user_id'], source=source, amount=amount, date=income_date))
+    new_income = Income(user_id=session['user_id'], source=request.form['source'], amount=float(request.form['amount']), date=income_date)
+    db.session.add(new_income)
     db.session.commit()
     return redirect(url_for('index'))
 
@@ -222,14 +204,7 @@ def add_expense():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     date = datetime.strptime(request.form['date'], '%Y-%m-%d')
-    category = request.form['category']
-    amount = float(request.form['amount'])
-    new_expense = Expense(
-        user_id=session['user_id'],
-        date=date,
-        category=category,
-        amount=amount
-    )
+    new_expense = Expense(user_id=session['user_id'], category=request.form['category'], amount=float(request.form['amount']), date=date)
     db.session.add(new_expense)
     db.session.commit()
     return redirect(url_for('index'))
@@ -262,6 +237,23 @@ def edit_expense():
         db.session.commit()
     return redirect(url_for('index'))
 
+@app.route('/set_goal', methods=['POST'])
+def set_goal():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    name = request.form['name']
+    goal_type = request.form['type']
+    amount = float(request.form['amount'])
+    goal = Goal.query.filter_by(user_id=user_id, name=name, type=goal_type).first()
+    if goal:
+        goal.amount = amount
+    else:
+        goal = Goal(user_id=user_id, name=name, type=goal_type, amount=amount)
+        db.session.add(goal)
+    db.session.commit()
+    return redirect(url_for('index'))
+
 @app.route('/delete_income/<int:income_id>', methods=['POST'])
 def delete_income(income_id):
     if 'user_id' not in session:
@@ -272,7 +264,6 @@ def delete_income(income_id):
         db.session.commit()
     return redirect(url_for('index'))
 
-
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 def delete_expense(expense_id):
     if 'user_id' not in session:
@@ -282,7 +273,6 @@ def delete_expense(expense_id):
         db.session.delete(expense)
         db.session.commit()
     return redirect(url_for('index'))
-
 
 if __name__ == '__main__':
     with app.app_context():
