@@ -1,8 +1,26 @@
 <div class="row align-items-start mb-5 gx-4">
-  <!-- Expense Table -->
+  <!-- Expense Table + Form -->
   <div class="col-md-6">
     <div class="card p-4 shadow-sm">
       <h5 class="text-danger fw-bold mb-3">Expense Overview</h5>
+      <form method="POST" action="/add" class="row g-2 align-items-end mb-4">
+        <div class="col-md-3">
+          <input type="text" name="category" class="form-control" placeholder="Category" required>
+        </div>
+        <div class="col-md-3">
+          <input type="text" name="description" class="form-control" placeholder="Description">
+        </div>
+        <div class="col-md-2">
+          <input type="number" name="amount" step="0.01" class="form-control" placeholder="Amount" required>
+        </div>
+        <div class="col-md-2">
+          <input type="date" name="date" class="form-control" required>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button class="btn btn-danger w-100">Add</button>
+        </div>
+      </form>
+
       <div class="table-responsive">
         <table class="table table-bordered table-sm align-middle text-center">
           <thead class="table-light">
@@ -29,7 +47,7 @@
                   <input type="hidden" name="name" value="{{ expense.label }}">
                   <input type="hidden" name="type" value="expense">
                   <input type="number" name="amount" step="0.01" value="{{ expense.goal }}"
-                        class="form-control form-control-sm" style="max-width: 80px;">
+                         class="form-control form-control-sm" style="max-width: 80px;">
                   <button class="btn btn-sm btn-outline-danger">✔</button>
                 </form>
               </td>
@@ -37,7 +55,7 @@
                 <form method="POST" action="/edit_expense" class="d-flex gap-1">
                   <input type="hidden" name="expense_id" value="{{ expense.id }}">
                   <input type="number" step="0.01" name="amount" value="{{ expense.actual }}"
-                        class="form-control form-control-sm" style="max-width: 80px;">
+                         class="form-control form-control-sm" style="max-width: 80px;">
                   <button class="btn btn-sm btn-danger">💾</button>
                 </form>
               </td>

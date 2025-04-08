@@ -212,7 +212,9 @@ def add_income():
         return redirect(url_for('login'))
     source = request.form['source']
     amount = float(request.form['amount'])
-    db.session.add(Income(user_id=session['user_id'], source=source, amount=amount))
+    date_str = request.form['date']
+    income_date = datetime.strptime(date_str, '%Y-%m-%d')
+    db.session.add(Income(user_id=session['user_id'], source=source, amount=amount, date=income_date))
     db.session.commit()
     return redirect(url_for('index'))
 
@@ -220,13 +222,18 @@ def add_income():
 def add_expense():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    db.session.add(Expense(
+    date = datetime.strptime(request.form['date'], '%Y-%m-%d')
+    category = request.form['category']
+    description = request.form['description']
+    amount = float(request.form['amount'])
+    new_expense = Expense(
         user_id=session['user_id'],
-        date=datetime.strptime(request.form['date'], '%Y-%m-%d'),
-        category=request.form['category'],
-        description=request.form['description'],
-        amount=float(request.form['amount'])
-    ))
+        date=date,
+        category=category,
+        description=description,
+        amount=amount
+    )
+    db.session.add(new_expense)
     db.session.commit()
     return redirect(url_for('index'))
 
