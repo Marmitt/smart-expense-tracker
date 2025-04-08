@@ -9,3 +9,6 @@ __pycache__/
 # IDEs / OS
 .DS_Store
 .vscode/
+
+instance/
+budget.db
