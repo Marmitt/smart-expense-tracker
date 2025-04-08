@@ -46,143 +46,149 @@ class Goal(db.Model):
 
 @app.route('/')
 def index():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    user_id = session['user_id']
+    user_id = session.get('user_id')
     today = date.today()
     current_month_str = request.args.get('month')
-    current_month = datetime.strptime(current_month_str, '%Y-%m') if current_month_str else today.replace(day=1)
-    
+    if current_month_str:
+        current_month = datetime.strptime(current_month_str, '%Y-%m')
+    else:
+        current_month = today.replace(day=1)
+
     start_date = current_month.replace(day=1)
     next_month = (start_date.replace(day=28) + timedelta(days=4)).replace(day=1)
     end_date = next_month - timedelta(days=1)
+
     prev_month = (start_date - timedelta(days=1)).replace(day=1).strftime('%Y-%m')
     next_month_str = next_month.strftime('%Y-%m')
 
-    incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= start_date, Income.date <= end_date).all()
-    expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= start_date, Expense.date <= end_date).all()
-    savings = Saving.query.filter_by(user_id=user_id).filter(Saving.date >= start_date, Saving.date <= end_date).all()
-    goals = Goal.query.filter_by(user_id=user_id).all()
+    # Defaults
+    incomes, expenses, savings, goals = [], [], [], []
+    income_summary, expense_summary = [], []
 
-    goal_lookup = {(g.name, g.type): g.amount for g in goals}
+    income_labels, income_data = [], []
+    expense_labels, expense_data = [], []
+    savings_labels, savings_data = [], []
 
-    income_summary = []
-    income_sources = set(i.source for i in incomes)
-    for source in income_sources:
-        actual = sum(i.amount for i in incomes if i.source == source)
-        goal = goal_lookup.get((source, 'income'), 0)
-        diff = actual - goal
-        sample = next((i for i in incomes if i.source == source), None)
-        income_summary.append({
-            "id": sample.id if sample else None,
-            "label": source,
-            "icon": "bi-cash-stack",
-            "goal": goal,
-            "actual": actual,
-            "diff": diff
-        })
-
-    expense_summary = []
-    expense_categories = set(e.category for e in expenses)
-    for category in expense_categories:
-        actual = sum(e.amount for e in expenses if e.category == category)
-        goal = goal_lookup.get((category, 'expense'), 0)
-        diff = goal - actual
-        sample = next((e for e in expenses if e.category == category), None)
-        expense_summary.append({
-            "id": sample.id if sample else None,
-            "label": category,
-            "icon": "bi-wallet",
-            "goal": goal,
-            "actual": actual,
-            "diff": diff
-        })
-
-    income_labels = [i.source for i in incomes]
-    income_data = [i.amount for i in incomes]
-    expense_labels = [e.category for e in expenses]
-    expense_data = [e.amount for e in expenses]
-    savings_labels = [s.date.strftime('%b') for s in savings]
-    savings_data = [s.amount for s in savings]
-
-    total_income = sum(income_data)
-    total_expenses = sum(expense_data)
-
-    # Monthly summary for savings chart
     monthly_income = defaultdict(float)
     monthly_expenses = defaultdict(float)
-    for i in Income.query.filter_by(user_id=user_id).all():
-        monthly_income[i.date.strftime('%b')] += i.amount
-    for e in Expense.query.filter_by(user_id=user_id).all():
-        monthly_expenses[e.date.strftime('%b')] += e.amount
+    monthly_income_list, monthly_expense_list, monthly_savings_list = [], [], []
+    monthly_actual_income, monthly_goal_income = [0]*12, [0]*12
+    monthly_actual_expense, monthly_goal_expense = [0]*12, [0]*12
 
-    months_order = list(month_abbr)[1:]  # Jan - Dec
-    monthly_income_list = [monthly_income[m] for m in months_order]
-    monthly_expense_list = [monthly_expenses[m] for m in months_order]
-    monthly_savings_list = [monthly_income[m] - monthly_expenses[m] for m in months_order]
+    months_order = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    monthly_labels = list(month_abbr)[1:]
 
-    monthly_actual_income = []
-    monthly_goal_income = []
-    for i in range(1, 13):
-        m_start = date(today.year, i, 1)
-        m_end = (m_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-        m_incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= m_start, Income.date <= m_end).all()
-        actual = sum(i.amount for i in m_incomes)
-        goal = sum(goal_lookup.get((i.source, "income"), 0) for i in m_incomes)
-        monthly_actual_income.append(actual)
-        monthly_goal_income.append(goal)
-    
-    monthly_actual_expense = []
-    monthly_goal_expense = []
-    monthly_expense_labels = months_order
+    total_income = total_expenses = remaining = 0
 
-    for i in range(12):
-        month_start = date(today.year, i + 1, 1)
-        month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+    if user_id:
+        incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= start_date, Income.date <= end_date).all()
+        expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= start_date, Expense.date <= end_date).all()
+        savings = Saving.query.filter_by(user_id=user_id).filter(Saving.date >= start_date, Saving.date <= end_date).all()
+        goals = Goal.query.filter_by(user_id=user_id).all()
 
-        # Get all expenses for the month
-        month_expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= month_start, Expense.date <= month_end).all()
-        actual = sum(e.amount for e in month_expenses)
-        goal = sum(goal_lookup.get((e.category, "expense"), 0) for e in month_expenses)
+        goal_lookup = {(g.name, g.type): g.amount for g in goals}
 
-        monthly_actual_expense.append(actual)
-        monthly_goal_expense.append(goal)
+        # Income summary
+        income_sources = set(i.source for i in incomes)
+        for source in income_sources:
+            actual = sum(i.amount for i in incomes if i.source == source)
+            goal = goal_lookup.get((source, 'income'), 0)
+            diff = actual - goal
+            sample_income = next((i for i in incomes if i.source == source), None)
+            income_summary.append({
+                "id": sample_income.id if sample_income else None,
+                "label": source,
+                "icon": "bi-cash-stack",
+                "goal": goal,
+                "actual": actual,
+                "diff": diff
+            })
 
+        # Expense summary
+        expense_categories = set(e.category for e in expenses)
+        for category in expense_categories:
+            actual = sum(e.amount for e in expenses if e.category == category)
+            goal = goal_lookup.get((category, 'expense'), 0)
+            diff = goal - actual
+            sample_expense = next((e for e in expenses if e.category == category), None)
+            expense_summary.append({
+                "id": sample_expense.id if sample_expense else None,
+                "label": category,
+                "icon": "bi-wallet",
+                "goal": goal,
+                "actual": actual,
+                "diff": diff
+            })
 
-    return render_template("index.html",
+        # Basic charts
+        income_labels = [i.source for i in incomes]
+        income_data = [i.amount for i in incomes]
+        expense_labels = [e.category for e in expenses]
+        expense_data = [e.amount for e in expenses]
+        savings_labels = [s.date.strftime('%b') for s in savings]
+        savings_data = [s.amount for s in savings]
+
+        total_income = sum(income_data)
+        total_expenses = sum(expense_data)
+        remaining = total_income - total_expenses
+
+        # Monthly overview: all months
+        for i in Income.query.filter_by(user_id=user_id).all():
+            month = i.date.strftime('%b')
+            monthly_income[month] += i.amount
+        for e in Expense.query.filter_by(user_id=user_id).all():
+            month = e.date.strftime('%b')
+            monthly_expenses[month] += e.amount
+
+        for m in months_order:
+            income_val = monthly_income[m]
+            expense_val = monthly_expenses[m]
+            monthly_income_list.append(income_val)
+            monthly_expense_list.append(expense_val)
+            monthly_savings_list.append(income_val - expense_val)
+
+        for i in range(12):
+            month_start = date(today.year, i + 1, 1)
+            month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+            month_incomes = Income.query.filter_by(user_id=user_id).filter(Income.date >= month_start, Income.date <= month_end).all()
+            actual_income = sum(i.amount for i in month_incomes)
+            goal_income = sum(goal_lookup.get((i.source, "income"), 0) for i in month_incomes)
+            monthly_actual_income[i] = actual_income
+            monthly_goal_income[i] = goal_income
+
+            month_expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= month_start, Expense.date <= month_end).all()
+            actual_expense = sum(e.amount for e in month_expenses)
+            goal_expense = sum(goal_lookup.get((e.category, "expense"), 0) for e in month_expenses)
+            monthly_actual_expense[i] = actual_expense
+            monthly_goal_expense[i] = goal_expense
+
+    return render_template('index.html',
         income_labels=income_labels,
         income_data=income_data,
-        income_summary=income_summary,
-        incomeGoal=[item["goal"] for item in income_summary],
-        incomeActual=[item["actual"] for item in income_summary],
-
         expense_labels=expense_labels,
         expense_data=expense_data,
-        expense_summary=expense_summary,
-
         savings_labels=months_order,
         savings_data=savings_data,
         monthly_income=monthly_income_list,
         monthly_expenses=monthly_expense_list,
         monthly_savings=monthly_savings_list,
-        monthly_goal_expense=monthly_goal_expense,
-        monthly_actual_expense=monthly_actual_expense,
-        monthly_expense_labels=monthly_expense_labels,
-
-
-        monthly_income_labels=months_order,
-        monthly_actual_income=monthly_actual_income,
-        monthly_goal_income=monthly_goal_income,
-
         budget=total_income,
         total=total_expenses,
-        remaining=total_income - total_expenses,
+        remaining=remaining,
         planner_data=[],
         expenses=expenses,
+        income_summary=income_summary,
+        expense_summary=expense_summary,
         current_month=current_month,
         prev_month=prev_month,
-        next_month=next_month_str
+        next_month=next_month_str,
+        monthly_income_labels=monthly_labels,
+        monthly_actual_income=monthly_actual_income,
+        monthly_goal_income=monthly_goal_income,
+        monthly_goal_expense=monthly_goal_expense,
+        monthly_actual_expense=monthly_actual_expense,
+        monthly_expense_labels=months_order
     )
 
 @app.route('/login', methods=['GET', 'POST'])
