@@ -78,7 +78,18 @@ def index():
         actual = sum(i.amount for i in incomes if i.source == source)
         goal = goal_lookup.get((source, 'income'), 0)
         diff = actual - goal
-        income_summary.append({"label": source, "icon": "bi-cash-stack", "goal": goal, "actual": actual, "diff": diff})
+        
+        # Get one real income ID to use for update
+        sample_income = next((i for i in incomes if i.source == source), None)
+        income_summary.append({
+            "id": sample_income.id if sample_income else None,
+            "label": source,
+            "icon": "bi-cash-stack",
+            "goal": goal,
+            "actual": actual,
+            "diff": diff
+        })
+
 
     # Expense summary
     expense_summary = []
@@ -87,7 +98,16 @@ def index():
         actual = sum(e.amount for e in expenses if e.category == category)
         goal = goal_lookup.get((category, 'expense'), 0)
         diff = goal - actual
-        expense_summary.append({"label": category, "icon": "bi-wallet", "goal": goal, "actual": actual, "diff": diff})
+        
+        sample_expense = next((e for e in expenses if e.category == category), None)
+        expense_summary.append({
+            "id": sample_expense.id if sample_expense else None,
+            "label": category,
+            "icon": "bi-wallet",
+            "goal": goal,
+            "actual": actual,
+            "diff": diff
+        })
 
     income_labels = [i.source for i in incomes]
     income_data = [i.amount for i in incomes]
@@ -217,6 +237,27 @@ def add_savings():
     db.session.add(Saving(user_id=session['user_id'], amount=float(request.form['amount'])))
     db.session.commit()
     return redirect(url_for('index'))
+
+@app.route('/edit_income', methods=['POST'])
+def edit_income():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    income = Income.query.filter_by(id=request.form['income_id'], user_id=session['user_id']).first()
+    if income:
+        income.amount = float(request.form['amount'])
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/edit_expense', methods=['POST'])
+def edit_expense():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    expense = Expense.query.filter_by(id=request.form['expense_id'], user_id=session['user_id']).first()
+    if expense:
+        expense.amount = float(request.form['amount'])
+        db.session.commit()
+    return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     with app.app_context():

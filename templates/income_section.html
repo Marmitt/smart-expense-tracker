@@ -1,21 +1,18 @@
-<div class="row align-items-start mb-5 gx-5">
-    <div class="col-md-6">
-      <div class="card">
-        <h5 class="income-title">Income</h5>
-        <form method="POST" action="/add_income">
-          <input type="text" name="source" class="form-control mb-2" placeholder="Income Source" required>
-          <input type="number" name="amount" step="0.01" class="form-control mb-2" placeholder="Amount" required>
-          <button class="btn btn-success w-100">Add Income</button>
-        </form>
-  
-        <table class="table table-bordered table-sm mt-4">
-          <thead>
-            <tr class="text-light">
+<div class="row align-items-start mb-5 gx-4">
+  <!-- Income Table -->
+  <div class="col-md-6">
+    <div class="card p-4 shadow-sm">
+      <h5 class="text-success fw-bold mb-3">Income Overview</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle text-center">
+          <thead class="table-light">
+            <tr>
               <th>Category</th>
               <th>Goal</th>
               <th>Actual</th>
               <th>Difference</th>
               <th>Set Budget</th>
+              <th>Edit</th>
             </tr>
           </thead>
           <tbody>
@@ -28,11 +25,20 @@
                 {{ "+" if income.diff >= 0 else "-" }}${{ "%.2f"|format(income.diff|abs) }}
               </td>
               <td>
-                <form method="POST" action="/set_goal" class="set-budget-form">
+                <form method="POST" action="/set_goal" class="d-flex gap-1">
                   <input type="hidden" name="name" value="{{ income.label }}">
                   <input type="hidden" name="type" value="income">
-                  <input type="number" name="amount" step="0.01" value="{{ income.goal }}" class="form-control form-control-sm">
-                  <button class="btn btn-sm btn-outline-success">Set Budget</button>
+                  <input type="number" name="amount" step="0.01" value="{{ income.goal }}"
+                        class="form-control form-control-sm" style="max-width: 80px;">
+                  <button class="btn btn-sm btn-outline-success">✔</button>
+                </form>
+              </td>
+              <td>
+                <form method="POST" action="/edit_income" class="d-flex gap-1">
+                  <input type="hidden" name="income_id" value="{{ income.id }}">
+                  <input type="number" step="0.01" name="amount" value="{{ income.actual }}"
+                        class="form-control form-control-sm" style="max-width: 80px;">
+                  <button class="btn btn-sm btn-success">💾</button>
                 </form>
               </td>
             </tr>
@@ -41,18 +47,14 @@
         </table>
       </div>
     </div>
-  
-    <div class="col-md-6">
-      <div class="card h-100 d-flex justify-content-center">
-        <div class="row">
-          <div class="col-md-6">
-            <canvas id="incomeChart"></canvas>
-          </div>
-          <div class="col-md-6">
-            <canvas id="incomeBarChart"></canvas>
-          </div>
-        </div>
-      </div>
+  </div>
+
+  <!-- Income Chart -->
+  <div class="col-md-6">
+    <div class="card p-4 shadow-sm text-center">
+      <h5 class="text-success">Income Chart</h5>
+      <canvas id="incomeChart" height="200"></canvas>
+      <canvas id="incomeBarChart" height="200" class="mt-4"></canvas>
     </div>
   </div>
-  
+</div>
