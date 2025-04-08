@@ -262,6 +262,27 @@ def edit_expense():
         db.session.commit()
     return redirect(url_for('index'))
 
+@app.route('/delete_income/<int:income_id>', methods=['POST'])
+def delete_income(income_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    income = Income.query.get_or_404(income_id)
+    if income.user_id == session['user_id']:
+        db.session.delete(income)
+        db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route('/delete_expense/<int:expense_id>', methods=['POST'])
+def delete_expense(expense_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    expense = Expense.query.get_or_404(expense_id)
+    if expense.user_id == session['user_id']:
+        db.session.delete(expense)
+        db.session.commit()
+    return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     with app.app_context():

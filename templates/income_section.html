@@ -49,13 +49,17 @@
                 </form>
               </td>
               <td>
-                <form method="POST" action="/edit_income" class="d-flex gap-1">
+                <form method="POST" action="/edit_income" class="d-flex align-items-center gap-1">
                   <input type="hidden" name="income_id" value="{{ income.id }}">
                   <input type="number" step="0.01" name="amount" value="{{ income.actual }}"
                          class="form-control form-control-sm" style="max-width: 80px;">
                   <button class="btn btn-sm btn-success">💾</button>
+                  <button formaction="/delete_income/{{ income.id }}" formmethod="POST"
+                          class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Delete this income?')">🗑️</button>
                 </form>
               </td>
+              
             </tr>
             {% endfor %}
           </tbody>
