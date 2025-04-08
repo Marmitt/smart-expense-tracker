@@ -21,7 +21,7 @@
     return colors;
   }
 
-  // INCOME AREA CHART (Goal vs Actual)
+  // INCOME MONTHLY AREA CHART
   new Chart(document.getElementById('incomeAreaChart'), {
     type: 'line',
     data: {
@@ -57,7 +57,7 @@
     }
   });
 
-  // INCOME HORIZONTAL BAR CHART
+  // INCOME HORIZONTAL BAR
   new Chart(document.getElementById('incomeBarChart'), {
     type: 'bar',
     data: {
@@ -87,24 +87,35 @@
     }
   });
 
-  // EXPENSE AREA CHART
+  // EXPENSE MONTHLY AREA CHART (NEW)
   new Chart(document.getElementById('expenseAreaChart'), {
     type: 'line',
     data: {
-      labels: {{ expense_labels | tojson }},
-      datasets: [{
-        data: {{ expense_data | tojson }},
-        fill: true,
-        backgroundColor: 'rgba(255,87,139,0.2)',
-        borderColor: '#ff578b',
-        tension: 0.3
-      }]
+      labels: {{ monthly_expense_labels | tojson }},
+      datasets: [
+        {
+          label: 'Budget',
+          data: {{ monthly_goal_expense | tojson }},
+          fill: true,
+          backgroundColor: 'rgba(254, 226, 226, 0.4)',
+          borderColor: '#fecaca',
+          tension: 0.3
+        },
+        {
+          label: 'Actual',
+          data: {{ monthly_actual_expense | tojson }},
+          fill: true,
+          backgroundColor: 'rgba(255, 87, 139, 0.2)',
+          borderColor: '#ff578b',
+          tension: 0.3
+        }
+      ]
     },
     options: {
-      maintainAspectRatio: false,
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { position: 'top' }
       },
       scales: {
         y: { beginAtZero: true }
@@ -112,7 +123,7 @@
     }
   });
 
-  // EXPENSE HORIZONTAL BAR CHART
+  // EXPENSE BAR CHART
   new Chart(document.getElementById('expenseBarChart'), {
     type: 'bar',
     data: {
@@ -142,7 +153,7 @@
     }
   });
 
-  // SAVINGS CHART — Income, Expense, Savings Over Time
+  // SAVINGS TREND LINE
   new Chart(document.getElementById('savingsChart'), {
     type: 'line',
     data: {
