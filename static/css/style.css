@@ -119,3 +119,13 @@ canvas {
   margin-top: 1rem;
 }
 
+.btn-success {
+  background-color: #38b994;
+  border-color: #38b994;
+}
+
+.btn-success:hover {
+  background-color: #2ea97f;
+  border-color: #2ea97f;
+}
+
