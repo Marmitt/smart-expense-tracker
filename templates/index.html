@@ -5,8 +5,8 @@
   <title>Smart Budget Planner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -15,64 +15,69 @@
   <nav class="navbar navbar-expand-lg navbar-custom shadow-sm mb-4">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="/">Smart Budget Planner</a>
-      <div>
+      <div class="d-flex align-items-center">
         {% if session.get("user_id") %}
-          <a href="/logout" class="btn btn-outline-light ms-2">Logout</a>
+          <form action="/logout" method="get" class="mb-0">
+            <button type="submit" class="btn btn-outline-light ms-2">Logout</button>
+          </form>
         {% else %}
           <a href="/login" class="btn btn-outline-light me-2">Login</a>
-          <a href="/register" class="btn btn-outline-light">Register</a>
+          <a href="/register" class="btn btn-light">Register</a>
         {% endif %}
-      </div>      
+      </div>
     </div>
   </nav>
 
   <div class="container py-4">
 
     <!-- Month Navigation -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
       <a href="/?month={{ prev_month }}" class="btn btn-outline-light">
         <i class="bi bi-chevron-left"></i>
       </a>
-      <h2 class="fw-bold text-center text-light">{{ current_month.strftime('%B %Y') }}</h2>
+      <h2 class="fw-bold text-light mb-0 text-center flex-grow-1">{{ current_month.strftime('%B %Y') }}</h2>
       <a href="/?month={{ next_month }}" class="btn btn-outline-light">
         <i class="bi bi-chevron-right"></i>
       </a>
     </div>
 
     <!-- Summary Cards -->
-    <div class="row text-center mb-5">
-      <div class="col-md-3 mb-3">
+    <div class="row text-center mb-5 g-3">
+      <div class="col-6 col-md-3">
         <div class="card p-3">
           <h6 class="text-light">Total Income</h6>
           <h4 class="text-success">${{ budget }}</h4>
         </div>
       </div>
-      <div class="col-md-3 mb-3">
+      <div class="col-6 col-md-3">
         <div class="card p-3">
           <h6 class="text-light">Total Expenses</h6>
           <h4 class="text-danger">${{ total }}</h4>
         </div>
       </div>
-      <div class="col-md-3 mb-3">
+      <div class="col-6 col-md-3">
         <div class="card p-3">
           <h6 class="text-light">Total Savings</h6>
           <h4 class="text-warning">${{ remaining }}</h4>
         </div>
       </div>
-      <div class="col-md-3 mb-3">
+      <div class="col-6 col-md-3">
         <div class="card p-3">
           <h6 class="text-light">Over/Under Budget</h6>
-          <h4 class="{% if remaining >= 0 %}text-success{% else %}text-danger{% endif %}">${{ remaining }}</h4>
+          <h4 class="{% if remaining >= 0 %}text-success{% else %}text-danger{% endif %}">
+            ${{ remaining }}
+          </h4>
         </div>
       </div>
     </div>
 
-    <!-- Dashboard Sections (two-column layouts restored as requested) -->
+    <!-- Dashboard Sections -->
     {% include 'income_section.html' %}
     {% include 'expense_section.html' %}
     {% include 'savings_section.html' %}
     {% include 'charts.html' %}
 
   </div>
+
 </body>
 </html>
