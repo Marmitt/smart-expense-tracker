@@ -129,3 +129,60 @@ canvas {
   border-color: #2ea97f;
 }
 
+/* Responsive layout tweaks */
+@media (max-width: 768px) {
+  .income-title,
+  .expense-title {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .table th, .table td {
+    font-size: 0.85rem;
+    padding: 0.4rem;
+  }
+
+  .set-budget-form {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .set-budget-form .form-control {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .set-budget-form .btn {
+    width: 100%;
+  }
+
+  .navbar-custom .btn {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  canvas {
+    max-height: 220px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .btn,
+  .form-control {
+    font-size: 0.85rem;
+  }
+
+  .monthly-budget-table td,
+  .monthly-budget-table th {
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+
+  .card h4, .card h5 {
+    font-size: 1.1rem;
+  }
+}
