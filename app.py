@@ -6,10 +6,6 @@ from collections import defaultdict
 from calendar import month_abbr
 import os
 import sqlalchemy as sa
-from app import db
-
-db.drop_all()
-db.create_all()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
