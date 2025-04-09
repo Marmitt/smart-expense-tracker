@@ -6,7 +6,6 @@ from collections import defaultdict
 from calendar import month_abbr
 import os
 import sqlalchemy as sa
-from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
@@ -15,7 +14,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 # Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
