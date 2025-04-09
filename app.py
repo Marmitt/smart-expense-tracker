@@ -136,6 +136,20 @@ def index():
         goal = sum(goal_lookup.get((i.source, "income"), 0) for i in month_incomes)
         monthly_actual_income.append(actual)
         monthly_goal_income.append(goal)
+        
+    monthly_actual_expense = []
+    monthly_goal_expense = []
+    for i in range(12):
+        month_start = date(today.year, i + 1, 1)
+        month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+        month_expenses = Expense.query.filter_by(user_id=user_id).filter(Expense.date >= month_start, Expense.date <= month_end).all()
+        actual = sum(e.amount for e in month_expenses)
+        goal = sum(goal_lookup.get((e.category, "expense"), 0) for e in month_expenses)
+
+        monthly_actual_expense.append(actual)
+        monthly_goal_expense.append(goal)
+
 
     return render_template("index.html",
         income_labels=[i.source for i in incomes],
@@ -162,7 +176,10 @@ def index():
         monthly_goal_expense=monthly_expense_list,
         monthly_actual_income=monthly_actual_income,
         monthly_actual_expense=monthly_expense_list,
-        monthly_goal_income=monthly_goal_income
+        monthly_goal_income=monthly_goal_income,
+        monthly_actual_expense=monthly_actual_expense,
+        monthly_goal_expense=monthly_goal_expense
+
     )
 
 # Auth Routes

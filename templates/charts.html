@@ -91,14 +91,14 @@
   new Chart(document.getElementById('expenseAreaChart'), {
     type: 'line',
     data: {
-      labels: {{ monthly_expense_labels | tojson }},
+      labels: {{ monthly_income_labels | tojson }},
       datasets: [
         {
           label: 'Budget',
           data: {{ monthly_goal_expense | tojson }},
           fill: true,
-          backgroundColor: 'rgba(254, 226, 226, 0.4)',
-          borderColor: '#fecaca',
+          backgroundColor: 'rgba(255, 205, 210, 0.3)',
+          borderColor: '#f87171',
           tension: 0.3
         },
         {
