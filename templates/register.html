@@ -12,19 +12,18 @@
 
   <div class="card p-4 shadow-lg" style="width: 100%; max-width: 400px; background-color: #142038; color: white;">
     <h4 class="mb-4 text-center fw-bold">Create Account</h4>
-    <form method="POST">
+    <form method="POST" action="/register">
       <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input class="form-control" name="username" placeholder="Choose a username" required>
+        <input type="text" class="form-control" name="username" placeholder="Username" required />
       </div>
-      <div class="mb-4">
-        <label class="form-label">Password</label>
-        <input class="form-control" name="password" type="password" placeholder="••••••••" required>
+      <div class="mb-3">
+        <input type="password" class="form-control" name="password" placeholder="Password" required />
       </div>
-      <div class="d-grid">
-        <button class="btn btn-success">Register</button>
-      </div>
-    </form>
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      <button class="btn btn-light w-100" type="submit">Register</button>
+    </form>    
     <div class="text-center mt-3">
       <small>Already have an account? <a href="/login" class="text-decoration-underline" style="color: #38bdf8;">Log in here</a></small>
     </div>

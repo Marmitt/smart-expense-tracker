@@ -171,13 +171,26 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        if not User.query.filter_by(username=request.form['username']).first():
-            hashed_pw = generate_password_hash(request.form['password'])
-            user = User(username=request.form['username'], password=hashed_pw)
-            db.session.add(user)
-            db.session.commit()
-            return redirect(url_for('login'))
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not username or not password:
+            return render_template('register.html', error='Please fill in all fields.')
+
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return render_template('register.html', error='Username already exists.')
+
+        hashed_pw = generate_password_hash(password)
+        new_user = User(username=username, password=hashed_pw)
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('login'))
+    
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
