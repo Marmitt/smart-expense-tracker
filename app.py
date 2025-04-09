@@ -174,11 +174,9 @@ def index():
         monthly_income_labels=monthly_labels,
         monthly_expense_labels=monthly_labels,
         monthly_actual_income=monthly_actual_income,
-        monthly_actual_expense=monthly_expense_list,
         monthly_goal_income=monthly_goal_income,
         monthly_actual_expense=monthly_actual_expense,
         monthly_goal_expense=monthly_goal_expense
-
     )
 
 # Auth Routes
