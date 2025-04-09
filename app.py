@@ -160,6 +160,7 @@ def index():
         prev_month=prev_month,
         next_month=next_month_str,
         monthly_income_labels=monthly_labels,
+        monthly_expense_labels=monthly_labels,
         monthly_actual_income=monthly_actual_income,
         monthly_goal_income=monthly_goal_income
     )
