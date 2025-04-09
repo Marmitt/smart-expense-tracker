@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 from collections import defaultdict
 from calendar import month_abbr
 import os
+import sqlalchemy as sa
 
 
 app = Flask(__name__)
@@ -14,11 +15,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
-@app.before_first_request
-def initialize_database():
-    db.create_all()
-
 
 # Models
 class User(db.Model):
@@ -52,6 +48,17 @@ class Goal(db.Model):
     name = db.Column(db.String(150), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     amount = db.Column(db.Float, default=0.0)
+
+# Check if at least one table exists, and create all if not
+def initialize_tables():
+    engine = sa.create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+    inspector = sa.inspect(engine)
+    if not inspector.has_table("user"):  # You can check for any known table
+        with app.app_context():
+            db.create_all()
+            print("✅ Tables created in the database.")
+
+initialize_tables()
 
 @app.route('/')
 def index():
